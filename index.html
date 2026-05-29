@@ -2189,13 +2189,13 @@ fInitCashflow();
   // 图片加载完后淡入
   function showSplash(){
     img.classList.add('show');
-    // 停顿 1.8s 后淡出
+    // 停顿 3.5s 后淡出
     setTimeout(()=>{
       sp.classList.add('hide');
       if(meta) meta.setAttribute('content','#f7f5f1');
-    }, 1800);
+    }, 3500);
     // 淡出完成后移除
-    setTimeout(()=> sp.remove(), 2700);
+    setTimeout(()=> sp.remove(), 4400);
   }
 
   if(img.complete){
