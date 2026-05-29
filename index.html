@@ -9,13 +9,13 @@
 <title>时迹 · Time Orbit</title>
   <link rel="manifest" href="./manifest.json">
 
-<meta name="theme-color" content="#050816">
+<meta name="theme-color" content="#f7f5f1">
 
 <link rel="apple-touch-icon" href="./icons/icon-180.png">
 
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <style>
 :root {
   --bg: #f7f5f1;
@@ -827,6 +827,7 @@ body {
 }
 </style>
 
+
 </head>
 <body>
 
@@ -874,14 +875,14 @@ body {
     </div>
     <div class="tab-content">
       <div class="tab-pane active" id="wtab-input">
-        <div class="section-label">日期</div>
+        
         <div class="date-row">
           <label style="flex:1;display:block">
             <input type="date" class="date-input" id="inp-date" style="width:100%">
           </label>
           <button class="today-btn" onclick="wSetToday()">今天</button>
         </div>
-        <div class="section-label">体重</div>
+        
         <div class="weight-row">
           <div class="weight-card morning">
             <div class="wc-label">🌅 晨起空腹</div>
@@ -910,7 +911,7 @@ body {
           <span style="font-size:11px;color:var(--muted)">kg</span>
           <span style="font-size:10px;color:var(--muted)" id="diffTip"></span>
         </div>
-        <div class="section-label">饮水记录</div>
+        
         <div class="water-total">
           <span class="wt-label">今日饮水</span>
           <span><span class="wt-val" id="water-total">0</span><span class="wt-unit"> ml</span></span>
@@ -932,7 +933,7 @@ body {
           </div>
           <div class="water-logs" id="water-logs"></div>
         </div>
-        <div class="section-label" style="margin-top:14px">今日状态</div>
+        
         <div class="note-grid" id="noteGrid"></div>
         <div class="overwrite-box" id="overwriteBox">
           <p id="overwriteMsg"></p>
@@ -2126,5 +2127,94 @@ fInitCashflow();
   </div>
 </div>
 
+
 </body>
 </html>
+
+
+<style id="v24-optimization">
+.top-bar{padding-top:calc(env(safe-area-inset-top) + 6px)!important;padding-bottom:6px!important;}
+.status-card{padding:8px 16px!important;}
+.water-total{padding:8px 10px!important;}
+.upper-section{height:43vh!important;min-height:43vh!important;max-height:43vh!important;}
+.figure-wrap{width:125%!important;}
+.info-box{display:none!important;}
+.data-row{padding:3px 0!important;min-height:24px!important;}
+.d-lbl{width:60px!important;}
+</style>
+
+<!-- ══ 开屏页 ══ -->
+<style>
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+}
+#splash-screen.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+#splash-img {
+  width: min(82vw, 82vh);
+  height: min(82vw, 82vh);
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+#splash-img.show {
+  opacity: 1;
+}
+</style>
+
+<div id="splash-screen">
+  <img id="splash-img"
+       src="./assets/time-orbit-splash.png"
+       alt="Time Orbit">
+</div>
+
+<script>
+(function(){
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content','#000000');
+
+  const img = document.getElementById('splash-img');
+  const sp  = document.getElementById('splash-screen');
+
+  // 图片加载完后淡入
+  function showSplash(){
+    img.classList.add('show');
+    // 停顿 1.8s 后淡出
+    setTimeout(()=>{
+      sp.classList.add('hide');
+      if(meta) meta.setAttribute('content','#f7f5f1');
+    }, 1800);
+    // 淡出完成后移除
+    setTimeout(()=> sp.remove(), 2700);
+  }
+
+  if(img.complete){
+    showSplash();
+  } else {
+    img.addEventListener('load', showSplash);
+    img.addEventListener('error', ()=> sp.remove()); // 图片挂了也不卡住
+  }
+})();
+</script>
+
+<script>
+let tesseractLoaded=false;
+async function loadOCR(){
+ if(tesseractLoaded) return;
+ const s=document.createElement('script');
+ s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+ document.head.appendChild(s);
+ await new Promise(r=>s.onload=r);
+ tesseractLoaded=true;
+}
+</script>
