@@ -2149,7 +2149,7 @@ fInitCashflow();
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: #080808;
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2174,14 +2174,14 @@ fInitCashflow();
 
 <div id="splash-screen">
   <img id="splash-img"
-       src="https://curley-space.github.io/Curley-s-App/assets/time-orbit-splash.png"
+       src="./assets/time-orbit-splash.png"
        alt="Time Orbit">
 </div>
 
 <script>
 (function(){
   const meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content','#080808');
+  if(meta) meta.setAttribute('content','#000000');
 
   const img = document.getElementById('splash-img');
   const sp  = document.getElementById('splash-screen');
