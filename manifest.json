@@ -6,8 +6,8 @@
 "scope": "/Curley-s-App/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#050816",
-  "theme_color": "#050816",
+  "background_color": "#000000",
+  "theme_color": "#000000",
 
   "icons": [
     {
