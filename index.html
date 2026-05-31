@@ -21,8 +21,8 @@
   --bg: #050816;
   --card: #0d1225;
   --border: #1e2a4a;
-  --text: #f5edd6;
-  --muted: #8a7d5a;
+--text: #f0e8d0;
+--muted: #a09070;
   --accent: #d9b67a;
   --accent-light: #2a1f0a;
   --blue: #7eb8d4;
@@ -50,7 +50,7 @@ body {
 /* ══ 顶部栏 ══ */
 .top-bar {
   padding: 14px 16px 10px;
- background: rgba(5,8,22,0.75);
+ background: rgba(13,18,37,0.88);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 0.5px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
@@ -72,7 +72,7 @@ body {
 
 .bottom-nav {
   display: flex;
-  background: rgba(5,8,22,0.75);
+  background: rgba(13,18,37,0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-top: 0.5px solid var(--border);
@@ -86,11 +86,11 @@ body {
   gap: 3px; padding: 6px 4px;
   background: none; border: none; cursor: pointer;
 }
-.nav-btn .nav-icon { font-size: 20px; line-height: 1; }
+.nav-btn .nav-icon { font-size: 24px; line-height: 1; }
 .nav-btn .nav-label { font-size: 10px; color: var(--muted); font-weight: 500; }
 .tab-bar {
   display: flex;
-  background: rgba(5,8,22,0.75);
+  background: rgba(13,18,37,0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 0.5px solid var(--border);
@@ -170,9 +170,9 @@ body {
   background: var(--bg); border-radius: 10px; padding: 7px 4px;
   text-align: center; border: 0.5px solid var(--border);
 }
-.status-pill .sp-label { font-size: 9px; color: var(--muted); margin-bottom: 2px; }
-.status-pill .sp-val { font-size: 14px; font-weight: 700; }
-.status-pill .sp-unit { font-size: 9px; color: var(--muted); font-weight: 400; }
+.status-pill .sp-label { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.status-pill .sp-val { font-size: 16px; font-weight: 700; }
+.status-pill .sp-unit { font-size: 11px; color: var(--muted); font-weight: 400; }
 .advice-bar {
   display: flex; align-items: flex-start; gap: 8px;
   padding: 8px 10px; border-radius: 10px; font-size: 11px; line-height: 1.5;
@@ -579,7 +579,7 @@ body {
 .rate-row .rate-right { display:flex; align-items:center; gap:8px; }
 .rate-input {
   width:70px; height:30px; border:0.5px solid var(--border); border-radius:8px;
-  background:var(--bg); padding:0 8px; font-size:13px; outline:none; text-align:right;
+  background:var(--bg); padding:0 8px; font-size:13px; outline:none; text-align:right;color: var(--text);
 }
 .rate-input:focus { border-color:var(--accent); }
 .rate-save-btn {
@@ -588,7 +588,7 @@ body {
 }
 .add-asset-btn {
   width:100%; height:44px; border:none; border-radius:12px;
-  background:var(--text); color:#fff; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:12px;
+ background: var(--accent); color: var(--bg);
 }
 .type-group { border:0.5px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:8px; background:var(--card); }
 .type-header { padding:14px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
@@ -597,8 +597,7 @@ body {
 .type-header .th-total { font-size:15px; font-weight:700; }
 .bank-list { display:none; border-top:0.5px solid var(--border); }
 .type-group.open .bank-list { display:block; }
-.bank-item { border-bottom:0.5px solid #f0ece4; }
-.bank-item:last-child { border-bottom:none; }
+.bank-item { border-bottom:0.5px solid var(--border); }
 .bank-header { padding:12px 16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
 .bank-header .bh-name { font-size:13px; font-weight:600; }
 .bank-header .bh-total { font-size:12px; color:var(--muted); }
@@ -822,8 +821,9 @@ body {
 }
 
 /* 调整左右比例 */
-.figure-col{
-  width:62% !important;
+.figure-col {
+  width: 62% !important;
+  background: #0d1225 !important;
 }
 
 .data-col{
