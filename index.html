@@ -2058,11 +2058,12 @@ fInitCashflow();
     setTimeout(()=> sp.remove(), 3300);
   }
 
- showSplash();
-
-img.addEventListener('error', ()=> sp.remove());
-})();
-</script>
+if(img.complete){
+    showSplash();
+} else {
+    img.addEventListener('load', showSplash);
+    img.addEventListener('error', ()=> sp.remove());
+}
 
 <script>
 let tesseractLoaded=false;
