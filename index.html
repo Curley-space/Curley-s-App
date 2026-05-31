@@ -1125,34 +1125,6 @@ body {
 
 <script>
 
-// 图片放大
-function bOpenImgOverlay() {
-  const img = document.querySelector('.figure-wrap img');
-  document.getElementById('overlayImg').src = img.src;
-  // 重建标注（放大版）
-  const ANNOS = [
-    {top:'9.05%', text:'头', key:'head', unit:'cm'},
-    {top:'17.82%', text:'肩', key:'shoulder', unit:'cm'},
-    {top:'25.62%', text:'胸', key:'chest', unit:'cm'},
-    {top:'35.84%', text:'腰', key:'waist', unit:'cm'},
-    {top:'45.44%', text:'臀', key:'hip', unit:'cm'},
-    {top:'58.43%', text:'腿', key:'thigh', unit:'cm'},
-    {top:'77.56%', text:'小腿', key:'calf', unit:'cm'},
-    {top:'87.71%', text:'踝', key:'ankle', unit:'cm'},
-  ];
-  const container = document.getElementById('overlayAnnos');
-  container.innerHTML = ANNOS.map(a => {
-    const val = bCurrent[a.key];
-    return `<div class="overlay-anno" style="top:${a.top}">
-      ${a.text}<span class="ov">${val ? val+a.unit : '—'}</span>
-    </div>`;
-  }).join('');
-  document.getElementById('imgOverlay').classList.add('open');
-}
-function bCloseImgOverlay() {
-  document.getElementById('imgOverlay').classList.remove('open');
-}
-
 // ════════════════════════════════════
 // 页面导航
 // ════════════════════════════════════
@@ -2022,14 +1994,6 @@ fRenderAssets();
 fInitCashflow();
 </script>
 
-<!-- 图片放大 Overlay -->
-<div class="img-overlay" id="imgOverlay" onclick="bCloseImgOverlay()">
-  <div class="img-overlay-inner" onclick="event.stopPropagation()">
-   <img id="overlayImg" src="" alt="">
-    <div class="img-overlay-annos" id="overlayAnnos"></div>
-    <button class="img-overlay-close" onclick="bCloseImgOverlay()">×</button>
-  </div>
-</div>
 
 
 </body>
@@ -2074,9 +2038,6 @@ fInitCashflow();
   opacity: 1;
 }
 </style>
-
-
-
 <script>
 (function(){
   const meta = document.querySelector('meta[name="theme-color"]');
