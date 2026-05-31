@@ -18,21 +18,21 @@
 
 <style>
 :root {
-  --bg: #f7f5f1;
-  --card: #ffffff;
-  --border: #e8e4dc;
-  --text: #1a1a1a;
-  --muted: #888;
-  --accent: #c0622a;
-  --accent-light: #f5ede7;
-  --blue: #3b6fd4;
-  --blue-light: #eef2fb;
-  --green: #2d7a4f;
-  --green-light: #e8f5ee;
-  --warn: #b07d2a;
-  --warn-light: #fdf3e3;
-  --err: #b03030;
-  --err-light: #fdeaea;
+  --bg: #050816;
+  --card: #0d1225;
+  --border: #1e2a4a;
+  --text: #f5edd6;
+  --muted: #8a7d5a;
+  --accent: #d9b67a;
+  --accent-light: #2a1f0a;
+  --blue: #7eb8d4;
+  --blue-light: #0d1e2a;
+  --green: #6db88a;
+  --green-light: #0d2018;
+  --warn: #d9b67a;
+  --warn-light: #2a1f0a;
+  --err: #c0524a;
+  --err-light: #2a0d0d;
   --nav-h: 56px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -50,7 +50,8 @@ body {
 /* ══ 顶部栏 ══ */
 .top-bar {
   padding: 14px 16px 10px;
-  background: var(--bg);
+ background: rgba(5,8,22,0.75);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 0.5px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0; z-index: 10;
@@ -69,9 +70,11 @@ body {
 }
 .page.active { opacity:1; pointer-events:auto; }
 
-/* ══ 底部导航 ══ */
 .bottom-nav {
-  display: flex; background: var(--card);
+  display: flex;
+  background: rgba(5,8,22,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-top: 0.5px solid var(--border);
   flex-shrink: 0;
   padding-bottom: var(--safe-bottom);
@@ -85,14 +88,15 @@ body {
 }
 .nav-btn .nav-icon { font-size: 20px; line-height: 1; }
 .nav-btn .nav-label { font-size: 10px; color: var(--muted); font-weight: 500; }
-.nav-btn.active .nav-label { color: var(--accent); }
-.nav-btn.active .nav-icon { filter: none; }
-
-/* ══ 页内Tab ══ */
 .tab-bar {
-  display: flex; background: var(--card);
-  border-bottom: 0.5px solid var(--border); flex-shrink: 0;
+  display: flex;
+  background: rgba(5,8,22,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
 }
+
 .tab-btn {
   flex: 1; padding: 10px 4px; font-size: 12px; font-weight: 500;
   color: var(--muted); background: none; border: none;
