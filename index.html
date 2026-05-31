@@ -830,7 +830,11 @@ body {
 
 </head>
 <body>
-
+<div id="splash-screen">
+  <img id="splash-img"
+       src="./assets/time-orbit-splash.png"
+       alt="Time Orbit">
+</div>
 <div class="top-bar">
   <h1 id="pageTitle">体重记录</h1>
   <span class="date" id="today-date"></span>
@@ -2161,8 +2165,8 @@ fInitCashflow();
   pointer-events: none;
 }
 #splash-img {
-  width: min(82vw, 82vh);
-  height: min(82vw, 82vh);
+  width: min(96vw, 92vh);
+  height: min(96vw, 92vh);
   object-fit: contain;
   opacity: 0;
   transition: opacity 0.9s ease;
@@ -2172,11 +2176,7 @@ fInitCashflow();
 }
 </style>
 
-<div id="splash-screen">
-  <img id="splash-img"
-       src="./assets/time-orbit-splash.png"
-       alt="Time Orbit">
-</div>
+
 
 <script>
 (function(){
