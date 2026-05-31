@@ -98,8 +98,8 @@ body {
 }
 
 .tab-btn {
-  flex: 1; padding: 10px 4px; font-size: 12px; font-weight: 500;
-  color: var(--muted); background: none; border: none;
+  flex: 1; padding: 10px 4px; font-size: 14px; font-weight: 600;
+  color: var(--text); background: none; border: none;
   border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -0.5px;
 }
 .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
@@ -331,18 +331,14 @@ body {
 .figure-col {
   width:60%;
   position:relative;
-
   padding:10px 0 10px 8px;
-
   flex-shrink:0;
-
   display:flex;
   align-items:center;
   justify-content:center;
-
   overflow:hidden;
-
   z-index:1;
+  background: radial-gradient(ellipse at center, #1c1608 0%, var(--card) 72%);
 }
 .figure-wrap {
   position:relative;
@@ -492,14 +488,14 @@ body {
 .metric-pill .mp-val { font-size:12px; font-weight:600; color:var(--accent); }
 .body-tab-section { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .tags-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
-.tag { font-size:11px; padding:4px 10px; border-radius:20px; border:0.5px solid var(--border); color:#555; background:var(--card); }
+.tag { font-size:11px; padding:4px 10px; border-radius:20px; border:0.5px solid var(--accent); color:var(--text); background:var(--accent-light); }
 .analysis-list { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
 .analysis-item {
-  font-size:12px; line-height:1.6; color:#555; padding:7px 10px;
+  font-size:12px; line-height:1.6; color:var(--text); padding:7px 10px;
   border-left:2.5px solid var(--accent); border-radius:0 8px 8px 0; background:var(--accent-light);
 }
 .ratio-item { margin-bottom:10px; }
-.ratio-header { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-bottom:4px; }
+.ratio-header { display:flex; justify-content:space-between; font-size:11px; color:var(--text); margin-bottom:4px; }
 .ratio-bar { height:4px; background:var(--border); border-radius:3px; overflow:hidden; }
 .ratio-fill { height:100%; background:var(--accent); border-radius:3px; opacity:0.75; }
 .fit-type-tabs { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
@@ -988,7 +984,7 @@ body {
     <div class="upper-section">
       <div class="figure-col">
         <div class="figure-wrap" >
-          <img src="./assets/body-figure.png" style="width:100%; height:100%; object-fit:contain;">
+          <img src="./assets/body-figure.png">
         </div>
         <div class="data-scroll">
           <div id="bDataRows"></div>
@@ -1611,7 +1607,7 @@ function bRenderAnalysis() {
     {label:'腰臀比',val:ww&&hh?+(ww/hh).toFixed(2):null,ref:'理想 0.67-0.80'},
     {label:'肩臀比',val:ss&&hh?+(ss/hh).toFixed(2):null,ref:'理想 0.40-0.50'},
   ].filter(i=>i.val).map(i=>`<div class="ratio-item">
-    <div class="ratio-header"><span>${i.label} <span style="font-size:9px;opacity:0.6">${i.ref}</span></span><span>${i.val}</span></div>
+    <div class="ratio-header"><span>${i.label} <span style="font-size:11px;opacity:0.8">${i.ref}</span></span><span>${i.val}</span></div>
     <div class="ratio-bar"><div class="ratio-fill" style="width:${Math.min(i.val*100,100)}%"></div></div>
   </div>`).join('');
 }
