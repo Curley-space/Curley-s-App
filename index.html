@@ -2058,12 +2058,9 @@ fInitCashflow();
     setTimeout(()=> sp.remove(), 3300);
   }
 
-  if(img.complete){
-    showSplash();
-  } else {
-    img.addEventListener('load', showSplash);
-    img.addEventListener('error', ()=> sp.remove()); // 图片挂了也不卡住
-  }
+ showSplash();
+
+img.addEventListener('error', ()=> sp.remove());
 })();
 </script>
 
