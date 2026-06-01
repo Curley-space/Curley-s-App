@@ -1858,12 +1858,26 @@ function fToggleTrend(){
 }
 function fOpenModal(id){document.getElementById(id).classList.add('open');}
 function fCloseModal(id){document.getElementById(id).classList.remove('open');}
-function fOpenAddModal(){fOpenModal('fAddModal');}
+function fOpenAddModal(){
+  document.getElementById('f-add-bank').selectedIndex=0;
+  document.getElementById('f-add-type').value='活期';
+  document.getElementById('f-add-currency').value='CNY';
+  document.getElementById('f-add-amount').value='';
+  document.getElementById('f-custom-finance-name').value='';
+  fToggleCustomFinance();
+  fOpenModal('fAddModal');
+}
 
 function fToggleCustomFinance(){
   const type=document.getElementById('f-add-type').value;
   const box=document.getElementById('f-custom-finance-group');
   if(box) box.style.display=(type==='customFinance')?'block':'none';
+
+  if(type==='customFinance'){
+    setTimeout(()=>{
+      document.getElementById('f-custom-finance-name')?.focus();
+    },100);
+  }
 }
 function fAddAsset(){
   const bank=document.getElementById('f-add-bank').value;
@@ -1871,6 +1885,7 @@ function fAddAsset(){
   const currency=document.getElementById('f-add-currency').value;
   const amount=parseFloat(document.getElementById('f-add-amount').value)||0;
   let name='',finalType=type;
+
   if(type==='活期'){name=bank+'活期';}
   else if(type==='养老金'){name=bank+'养老金';}
   else{
@@ -1878,6 +1893,10 @@ function fAddAsset(){
     finalType='理财';
     if(!name){alert('请填写理财名称');return;}
   }
+
+  const exists=fWorkingRecord.accounts.some(a=>a.name===name);
+  if(exists){alert('账户名称已存在');return;}
+
   fWorkingRecord.accounts.push({id:fUid(),bank,name,type:finalType,currency,amount});
   fSaveAssets();fRenderAssets();fCloseModal('fAddModal');
 }
@@ -1898,6 +1917,15 @@ function fSaveEdit(){
   const amount=parseFloat(
     document.getElementById('f-edit-amount').value
   )||0;
+
+  const duplicated=fWorkingRecord.accounts.some(
+    a=>a.id!==fCurrentEditId && a.name===name
+  );
+
+  if(duplicated){
+    alert('账户名称已存在');
+    return;
+  }
 
   const acc=fWorkingRecord.accounts.find(
     a=>a.id===fCurrentEditId
