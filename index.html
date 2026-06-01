@@ -34,7 +34,7 @@
   --err: #c0524a;
   --err-light: #2a0d0d;
   --nav-h: 56px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html, body { height:100%; overflow:hidden; }
@@ -45,9 +45,17 @@ body {
   display: flex; flex-direction: column;
   max-width: 430px; margin: 0 auto;
   height: 100%;
-  padding-top: env(safe-area-inset-top);
 }
-
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background: #050816;
+  z-index: 99998;
+}
 /* ══ 顶部栏 ══ */
 .top-bar {
   padding: 14px 16px 10px;
