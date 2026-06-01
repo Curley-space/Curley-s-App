@@ -59,8 +59,6 @@ body {
   background: var(--bg);
   font-family: -apple-system,"PingFang SC","Helvetica Neue",sans-serif;
   color: var(--text);
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 .top-bar{padding-top:6px;padding-bottom:6px;background:rgba(13,18,37,0.88);}
 .status-card{padding:8px 16px;}
@@ -72,7 +70,7 @@ body {
 
 /* ══ 顶部栏 ══ */
 .top-bar {
-  padding: 14px 16px 10px;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
  background: rgba(13,18,37,0.88);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 0.5px solid var(--border);
