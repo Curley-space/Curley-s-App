@@ -2318,15 +2318,28 @@ function importBackup(event) {
       const data = JSON.parse(e.target.result);
       if (!data.version) { alert('备份文件格式不正确'); return; }
       if (!confirm('导入将覆盖当前所有数据，确认继续？')) return;
-      if (data.weight_records) localStorage.setItem('weight_records', data.weight_records);
-      if (data.body_current) localStorage.setItem('body_current', data.body_current);
-      if (data.body_records) localStorage.setItem('body_records', data.body_records);
-      if (data.asset_records) localStorage.setItem('asset_records', data.asset_records);
-      if (data.expense_records) localStorage.setItem('expense_records', data.expense_records);
+      
+      // 💡 安全写入函数：确保写入 localStorage 的一定是严格的标准字符串格式
+      const safeSet = (key, value) => {
+        if (!value) return;
+        if (typeof value === 'string') {
+          localStorage.setItem(key, value);
+        } else {
+          localStorage.setItem(key, JSON.stringify(value));
+        }
+      };
+
+      safeSet('weight_records', data.weight_records);
+      safeSet('body_current', data.body_current);
+      safeSet('body_records', data.body_records);
+      safeSet('asset_records', data.asset_records);
+      safeSet('expense_records', data.expense_records);
+      
       alert('✅ 导入成功！即将刷新页面');
       location.reload();
     } catch(e) {
-      alert('导入失败：文件格式错误');
+      console.error(e);
+      alert('导入失败：文件格式错误或数据损坏');
     }
   };
   reader.readAsText(file);
