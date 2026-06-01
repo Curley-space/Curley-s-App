@@ -1869,17 +1869,25 @@ function fOpenAddModal(){
 }
 
 function fToggleCustomFinance() {
-  const type = document.getElementById('f-add-type').value;
+  const typeSelect = document.getElementById('f-add-type');
+  const type = typeSelect.value;
   const group = document.getElementById('f-custom-finance-group');
   const input = document.getElementById('f-custom-finance-name');
   
   if (type === 'customFinance') {
-    group.style.display = 'block';
-    setTimeout(() => {
-      if (input) {
-        input.focus();
-      }
-    }, 100);
+    // 直接弹出系统原生的输入框，避免移动端下拉菜单的焦点冲突
+    const customName = prompt("请输入自定义理财的名称：", "");
+    
+    if (customName && customName.trim() !== "") {
+      group.style.display = 'block';
+      input.value = customName.trim();
+    } else {
+      // 如果用户取消了输入，自动切回默认类型，防止逻辑卡死
+      alert("未输入理财名称，已取消选择");
+      typeSelect.value = 'card'; 
+      group.style.display = 'none';
+      if (input) input.value = '';
+    }
   } else {
     group.style.display = 'none';
     if (input) input.value = '';
