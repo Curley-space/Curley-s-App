@@ -1878,18 +1878,28 @@ function fToggleCustomFinance() {
     let customName = "";
     let isDuplicate = true;
     
-    // 1. 获取当前系统里已经存在的账户数据
-    let existingRecords = [];
+    // 1. 获取当前系统里所有历史账户的“扁平化名字列表”
+    let existingNames = [];
     try {
       const saved = localStorage.getItem('asset_records');
       if (saved) {
-        existingRecords = JSON.parse(saved);
+        const parsedHistory = JSON.parse(saved);
+        if (Array.isArray(parsedHistory)) {
+          // 钻进每一天的历史数据里，把里面所有 accounts 的名字提取出来
+          parsedHistory.forEach(dayRecord => {
+            if (dayRecord && dayRecord.accounts && Array.isArray(dayRecord.accounts)) {
+              dayRecord.accounts.forEach(acc => {
+                if (acc.name) existingNames.push(acc.name.trim());
+              });
+            }
+          });
+        }
       }
     } catch(e) {
-      console.error("读取资产记录失败", e);
+      console.error("读取或解析资产记录失败", e);
     }
 
-    // 2. 使用循环：如果名字重复，就一直提示，直到输入一个不重复的或者取消为止
+    // 2. 循环判断：如果重名，就一直强制弹窗提示更换
     while (isDuplicate) {
       customName = prompt("请输入自定义理财的名称：", customName);
       
@@ -1910,19 +1920,17 @@ function fToggleCustomFinance() {
         continue;
       }
       
-      // 校验唯一性：检查是否有同名的账户
-      const hasSameName = existingRecords.some(r => r.name === customName);
+      // 核心校验：直接在清洗出来的名字池里比对
+      const hasSameName = existingNames.includes(customName);
       
       if (hasSameName) {
         alert(`❌ 名称「${customName}」已存在，请换一个名字哦！`);
-        // 继续循环，让用户重新输入
       } else {
-        // 名字合法且不重复，跳出循环
-        isDuplicate = false;
+        isDuplicate = false; // 名字唯一，允许跳出循环
       }
     }
     
-    // 3. 校验通过，写入输入框
+    // 3. 校验通过，填入表单并显示
     group.style.display = 'block';
     input.value = customName;
     
