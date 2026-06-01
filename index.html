@@ -1723,29 +1723,92 @@ function fRenderAssets(){
   fRenderGroups(); fRenderFHistory();
 }
 function fRenderGroups(){
-  const wrap=document.getElementById('f-assetGroups'); wrap.innerHTML='';
-  if(!fWorkingRecord.accounts.length){wrap.innerHTML='<div class="empty-hint">暂无账户</div>';return;}
-  const typeMap={};
-  fWorkingRecord.accounts.forEach(a=>{if(!typeMap[a.type])typeMap[a.type]={};if(!typeMap[a.type][a.bank])typeMap[a.type][a.bank]=[];typeMap[a.type][a.bank].push(a);});
-  ['活期','理财','养老金'].forEach(type=>{
-    if(!typeMap[type]) return;
-    let typeTotal=0; Object.values(typeMap[type]).flat().forEach(a=>typeTotal+=fCalcVal(a));
-    const bankCount=Object.keys(typeMap[type]).length;
-    const div=document.createElement('div'); div.className='type-group';
-    div.innerHTML=`<div class="type-header" onclick="this.parentElement.classList.toggle('open')">
-      <div class="th-left"><div class="th-name">${type}</div><div class="th-sub">${bankCount} 家银行</div></div>
-      <div class="th-total">¥${fFmt(typeTotal)}</div></div>
-      <div class="bank-list">${Object.keys(typeMap[type]).map(bank=>{
-        const accs=typeMap[type][bank];let bankTotal=accs.reduce((s,a)=>s+fCalcVal(a),0);const multi=accs.length>1;
-        return `<div class="bank-item"><div class="bank-header" onclick="${multi?"this.parentElement.classList.toggle('open')":`fOpenEditModal('${accs[0].id}','${accs[0].name}',${accs[0].amount})`}">
-          <span class="bh-name">${bank}</span><span class="bh-total">¥${fFmt(bankTotal)}</span></div>
-          ${multi?`<div class="accounts">${accs.map(a=>`<div class="account-card" ontouchstart="fSwipeStart(event)" ontouchmove="fSwipeMove(event,this)">
-            <div class="delete-bg" onclick="fDeleteAsset('${a.id}')">删除</div>
-            <div class="account-content" onclick="fOpenEditModal('${a.id}','${a.name}',${a.amount})">
-              <div class="account-top"><span class="acc-name">${a.name}</span><span class="acc-val">${a.currency==='USD'?'$':'¥'}${fFmtFull(a.amount)}</span></div>
-              ${a.currency==='USD'?`<div class="acc-sub">≈ ¥${fFmtFull(fCalcVal(a))}</div>`:''}
-            </div></div>`).join('')}</div>`:''}</div>`;
-      }).join('')}</div>`;
+  const wrap=document.getElementById('f-assetGroups');
+  wrap.innerHTML='';
+
+  if(!fWorkingRecord.accounts.length){
+    wrap.innerHTML='<div class="empty-hint">暂无账户</div>';
+    return;
+  }
+
+  const bankMap={};
+
+  fWorkingRecord.accounts.forEach(a=>{
+    if(!bankMap[a.bank]) bankMap[a.bank]=[];
+    bankMap[a.bank].push(a);
+  });
+
+  Object.keys(bankMap).forEach(bank=>{
+
+    const accs=bankMap[bank];
+
+    const bankTotal=accs.reduce(
+      (s,a)=>s+fCalcVal(a),
+      0
+    );
+
+    const div=document.createElement('div');
+    div.className='type-group';
+
+    div.innerHTML=`
+      <div class="type-header"
+           onclick="this.parentElement.classList.toggle('open')">
+
+        <div class="th-left">
+          <div class="th-name">${bank}</div>
+        </div>
+
+        <div class="th-total">
+          ¥${fFmt(bankTotal)}
+        </div>
+
+      </div>
+
+      <div class="bank-list">
+
+        ${accs.map(a=>`
+
+          <div class="account-card"
+               ontouchstart="fSwipeStart(event)"
+               ontouchmove="fSwipeMove(event,this)">
+
+            <div class="delete-bg"
+                 onclick="fDeleteAsset('${a.id}')">
+              删除
+            </div>
+
+            <div class="account-content"
+                 onclick="fOpenEditModal('${a.id}','${a.name}',${a.amount})">
+
+              <div class="account-top">
+
+                <span class="acc-name">
+                  ${a.name}
+                </span>
+
+                <span class="acc-val">
+                  ${a.currency==='USD' ? '$' : '¥'}
+                  ${fFmtFull(a.amount)}
+                </span>
+
+              </div>
+
+              ${a.currency==='USD'
+                ? `<div class="acc-sub">
+                     ≈ ¥${fFmtFull(fCalcVal(a))}
+                   </div>`
+                : ''
+              }
+
+            </div>
+
+          </div>
+
+        `).join('')}
+
+      </div>
+    `;
+
     wrap.appendChild(div);
   });
 }
