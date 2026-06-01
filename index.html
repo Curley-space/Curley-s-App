@@ -1185,9 +1185,16 @@ body {
           <option>农业银行</option><option>上海银行</option><option>其他</option>
         </select>
       </div>
-      <div class="form-group"><label>账户名称</label><input type="text" id="f-add-name" placeholder="如：朝朝宝"></div>
       <div class="form-group"><label>类型</label>
-        <select id="f-add-type"><option value="活期">活期</option><option value="理财">理财</option><option value="养老金">养老金</option></select>
+        <select id="f-add-type" onchange="fToggleCustomFinance()">
+          <option value="活期">活期</option>
+          <option value="customFinance">自定义理财</option>
+          <option value="养老金">养老金</option>
+        </select>
+      </div>
+      <div class="form-group" id="f-custom-finance-group" style="display:none">
+        <label>理财名称</label>
+        <input type="text" id="f-custom-finance-name" placeholder="例如：朝朝宝">
       </div>
       <div class="form-group"><label>币种</label>
         <select id="f-add-currency"><option value="CNY">人民币 CNY</option><option value="USD">美元 USD</option></select>
@@ -1852,14 +1859,26 @@ function fToggleTrend(){
 function fOpenModal(id){document.getElementById(id).classList.add('open');}
 function fCloseModal(id){document.getElementById(id).classList.remove('open');}
 function fOpenAddModal(){fOpenModal('fAddModal');}
+
+function fToggleCustomFinance(){
+  const type=document.getElementById('f-add-type').value;
+  const box=document.getElementById('f-custom-finance-group');
+  if(box) box.style.display=(type==='customFinance')?'block':'none';
+}
 function fAddAsset(){
   const bank=document.getElementById('f-add-bank').value;
-  const name=document.getElementById('f-add-name').value.trim();
   const type=document.getElementById('f-add-type').value;
   const currency=document.getElementById('f-add-currency').value;
   const amount=parseFloat(document.getElementById('f-add-amount').value)||0;
-  if(!name){alert('请填写账户名称');return;}
-  fWorkingRecord.accounts.push({id:fUid(),bank,name,type,currency,amount});
+  let name='',finalType=type;
+  if(type==='活期'){name=bank+'活期';}
+  else if(type==='养老金'){name=bank+'养老金';}
+  else{
+    name=document.getElementById('f-custom-finance-name').value.trim();
+    finalType='理财';
+    if(!name){alert('请填写理财名称');return;}
+  }
+  fWorkingRecord.accounts.push({id:fUid(),bank,name,type:finalType,currency,amount});
   fSaveAssets();fRenderAssets();fCloseModal('fAddModal');
 }
 function fOpenEditModal(id,name,amount){
