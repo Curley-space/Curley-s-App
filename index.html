@@ -1868,15 +1868,21 @@ function fOpenAddModal(){
   fOpenModal('fAddModal');
 }
 
-function fToggleCustomFinance(){
-  const type=document.getElementById('f-add-type').value;
-  const box=document.getElementById('f-custom-finance-group');
-  if(box) box.style.display=(type==='customFinance')?'block':'none';
-
-  if(type==='customFinance'){
-    setTimeout(()=>{
-      document.getElementById('f-custom-finance-name')?.focus();
-    },100);
+function fToggleCustomFinance() {
+  const type = document.getElementById('f-add-type').value;
+  const group = document.getElementById('f-custom-finance-group');
+  const input = document.getElementById('f-custom-finance-name');
+  
+  if (type === 'customFinance') {
+    group.style.display = 'block';
+    setTimeout(() => {
+      if (input) {
+        input.focus();
+      }
+    }, 100);
+  } else {
+    group.style.display = 'none';
+    if (input) input.value = '';
   }
 }
 function fAddAsset(){
