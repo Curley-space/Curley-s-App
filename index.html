@@ -1856,8 +1856,8 @@ function fToggleTrend(){
     fTrendChart=new Chart(canvas,{type:'line',data:{labels:data.map(d=>d.date.slice(5)),datasets:[{data:data.map(d=>fCalcTotal(d)),borderColor:'#c0622a',borderWidth:2.5,tension:0.35,pointRadius:4,pointBackgroundColor:'#c0622a',fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
   }
 }
-function fOpenModal(id){document.getElementById(id).classList.add('open');}
-function fCloseModal(id){document.getElementById(id).classList.remove('open');}
+function fOpenModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow = 'hidden';}
+function fCloseModal(id){document.getElementById(id).classList.remove('open');}document.body.style.overflow = '';
 function fOpenAddModal(){
   document.getElementById('f-add-bank').selectedIndex=0;
   document.getElementById('f-add-type').value='活期';
