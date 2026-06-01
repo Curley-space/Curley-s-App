@@ -1208,9 +1208,24 @@ body {
       <h3 id="f-editTitle">编辑账户</h3>
       <button class="modal-close" onclick="fCloseModal('fEditModal')">×</button>
     </div>
-    <div class="modal-body">
-      <div class="form-group"><label>金额</label><input type="number" id="f-edit-amount" placeholder="0.00" step="0.01"></div>
-    </div>
+   <div class="modal-body">
+
+  <div class="form-group">
+    <label>账户名称</label>
+    <input type="text"
+           id="f-edit-name"
+           placeholder="请输入账户名称">
+  </div>
+
+  <div class="form-group">
+    <label>金额</label>
+    <input type="number"
+           id="f-edit-amount"
+           placeholder="0.00"
+           step="0.01">
+  </div>
+
+</div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="fCloseModal('fEditModal')">取消</button>
       <button class="btn-confirm" onclick="fSaveEdit()">保存</button>
@@ -1849,15 +1864,34 @@ function fAddAsset(){
 }
 function fOpenEditModal(id,name,amount){
   fCurrentEditId=id;
+
   document.getElementById('f-editTitle').textContent=name;
+  document.getElementById('f-edit-name').value=name;
   document.getElementById('f-edit-amount').value=amount;
+
   fOpenModal('fEditModal');
 }
+
 function fSaveEdit(){
-  const amount=parseFloat(document.getElementById('f-edit-amount').value)||0;
-  const acc=fWorkingRecord.accounts.find(a=>a.id===fCurrentEditId);
-  if(acc)acc.amount=amount;
-  fSaveAssets();fRenderAssets();fCloseModal('fEditModal');
+
+  const name=document.getElementById('f-edit-name').value.trim();
+
+  const amount=parseFloat(
+    document.getElementById('f-edit-amount').value
+  )||0;
+
+  const acc=fWorkingRecord.accounts.find(
+    a=>a.id===fCurrentEditId
+  );
+
+  if(acc){
+    acc.name=name;
+    acc.amount=amount;
+  }
+
+  fSaveAssets();
+  fRenderAssets();
+  fCloseModal('fEditModal');
 }
 function fDeleteAsset(id){
   const acc=fWorkingRecord.accounts.find(a=>a.id===id);
