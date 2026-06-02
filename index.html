@@ -109,8 +109,6 @@ body {
 }
 .nav-btn .nav-icon { font-size: 24px; line-height: 1; }
 .nav-btn .nav-label { font-size: 10px; color: var(--muted); font-weight: 500; }
-.nav-btn.active .nav-label { color: var(--accent); }
-.nav-btn.active .nav-icon { filter: drop-shadow(0 0 4px var(--accent)); }
 .tab-bar {
   display: flex;
   background: rgba(13,18,37,0.88);
@@ -1116,17 +1114,6 @@ body {
           <input type="file" style="display:none;" id="f-csvInput" accept=".csv" onchange="fHandleCSV(event)">
           <input type="file" style="display:none;" id="shortcutFileInput" accept=".txt" onchange="syncShortcutBill(event)">
 
-          <div class="data-status" id="f-dataStatus" style="display: none;">
-          ```
-
----
-
-就这样！完美咬合。贴完后你会看到代码像一栋刚盖好的精装别墅一样整齐。
-
-直接点击 Commit 提交上线，然后去刷新网页，来迎接真正完全体、长相超级优雅的“时迹”收支分析主页吧！🚀
-          </div>
-          <input type="file" style="display:none;" id="shortcutFileInput" accept=".txt" onchange="syncShortcutBill(event)">
-        <input type="file" style="display:none" id="f-csvInput" accept=".csv" onchange="fHandleCSV(event)">
         <div class="data-status" id="f-dataStatus">
           <span class="ds-text" id="f-dsText">已加载数据</span>
           <span class="ds-clear" onclick="fClearCSV()">清除</span>
