@@ -1798,7 +1798,7 @@ function bInit() { bLoadCurrent();bRenderFitFields();bRenderAll(); }
 // ════════════════════════════════════
 const F_ASSET_KEY='asset_records', F_CSV_KEY='expense_records';
 const F_CAT_COLORS={'饮食日常':'#e07b4a','日用服饰':'#6b9bd2','住宿出行':'#7cc4a0','生活娱乐':'#c47cc4','红包转账':'#d4b44a','其他':'#aaaaaa'};
-let fWorkingRecord=null, fCurrentEditId=null, fTrendChart=null, fPieChart=null, fBarChart=null, fCurrentMonth=null, fAllTxs=[], fStartX=0;
+let fWorkingRecord=null, fCurrentEditId=null, fTrendChart=null, fPieChart=null, fBarChart=null, fCurrentMonth=null, fAllTxs=[], fStartX=0,fOpenedBanks=[];
 
 function fUid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2);}
 function fToday(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
