@@ -1082,16 +1082,46 @@ body {
         <div id="f-historyList"></div>
       </div>
       <div class="tab-pane" id="ftab-cashflow">
-        <div class="upload-zone" onclick="document.getElementById('f-csvInput').click()">
-          <div class="uz-icon">📂</div>
-          <div class="uz-title">上传交易数据 CSV</div>
-          <div class="uz-sub">从 Numbers 导出「交易数据-交易.csv」后上传</div>
-        </div>
-        <!-- 快捷指令 TXT 同步框框 -->
-          <div class="upload-zone" onclick="document.getElementById('shortcutFileInput').click()">
-            <div class="uz-icon">🔄</div>
-            <div class="uz-title">同步快捷指令数据 TXT</div>
-            <div class="uz-sub">从 iCloud 云盘导入「time_orbit_sync.txt」</div>
+          <div class="card" style="margin: 10px 0 15px 0; padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.4);">📊 数据源配置</span>
+              <button type="button" onclick="toggleUploadZone()" id="toggleZoneBtn" style="background: none; border: none; color: #deb887; font-size: 13px; cursor: pointer; padding: 2px 6px;">
+                ▲ 收起面板
+              </button>
+            </div>
+
+            <div id="uploadContainer" style="transition: all 0.3s ease; overflow: hidden; max-height: 150px; opacity: 1;">
+              <div style="display: flex; gap: 10px; width: 100%;">
+                
+                <div class="upload-zone" onclick="document.getElementById('f-csvInput').click()" style="flex: 1; padding: 12px 5px; min-height: auto; border-radius: 12px; margin-bottom: 0; text-align: center; cursor: pointer;">
+                  <div class="uz-icon" style="font-size: 18px; margin-bottom: 2px;">📂</div>
+                  <div class="uz-title" style="font-size: 12px; font-weight: 600; white-space: nowrap;">交易数据 CSV</div>
+                  <div class="uz-sub" style="font-size: 10px; opacity: 0.5; transform: scale(0.85); line-height: 1.1;">Numbers 导出</div>
+                </div>
+
+                <div class="upload-zone" onclick="document.getElementById('shortcutFileInput').click()" style="flex: 1; padding: 12px 5px; min-height: auto; border-radius: 12px; margin-bottom: 0; text-align: center; border-color: rgba(30, 144, 255, 0.3); cursor: pointer;">
+                  <div class="uz-icon" style="font-size: 18px; margin-bottom: 2px;">🔄</div>
+                  <div class="uz-title" style="font-size: 12px; font-weight: 600; color: #6495ED; white-space: nowrap;">快捷指令 TXT</div>
+                  <div class="uz-sub" style="font-size: 10px; opacity: 0.5; transform: scale(0.85); line-height: 1.1;">iCloud 同步</div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <input type="file" style="display:none;" id="f-csvInput" accept=".csv" onchange="fHandleCSV(event)">
+          <input type="file" style="display:none;" id="shortcutFileInput" accept=".txt" onchange="syncShortcutBill(event)">
+
+          <div class="data-status" id="f-dataStatus" style="display: none;">
+          ```
+
+---
+
+就这样！完美咬合。贴完后你会看到代码像一栋刚盖好的精装别墅一样整齐。
+
+直接点击 Commit 提交上线，然后去刷新网页，来迎接真正完全体、长相超级优雅的“时迹”收支分析主页吧！🚀
           </div>
           <input type="file" style="display:none;" id="shortcutFileInput" accept=".txt" onchange="syncShortcutBill(event)">
         <input type="file" style="display:none" id="f-csvInput" accept=".csv" onchange="fHandleCSV(event)">
