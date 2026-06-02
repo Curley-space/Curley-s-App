@@ -2447,12 +2447,20 @@ function syncShortcutBill(event) {
 
             // 把合并后的全新大数组，稳稳地重新存回本地缓存
             localStorage.setItem('expense_records', JSON.stringify(expenseRecords));
-
-            // 弹出超有成就感的成功提示！
-            alert(`✅ 双轨同步成功！\n成功智能增量导入 ${successCount} 笔新账单。${errorCount > 0 ? `\n(自动过滤了 ${errorCount} 笔错误或旧测试格式)` : ''}`);
             
-            // 刷新页面，让图表和列表瞬间变新
-            location.reload();
+            // 🌟 原地丝滑升级：通知网页静默重绘图表，不再跳回开屏！
+            alert(`✅ 双轨同步成功！\n成功智能增量导入 ${successCount} 笔新账单。`);
+            
+            if (typeof fHandleCSVSuccess === 'function') {
+                fHandleCSVSuccess(); 
+            } else if (typeof fLoadData === 'function') {
+                fLoadData();
+            } else {
+                location.reload(); // 降级备用
+            }
+
+            // 智能加糖：成功导入后，让大面板自动闭合缩回去
+            setTimeout(() => { toggleUploadZone(); }, 300);
 
         } catch (e) {
             console.error(e);
@@ -2464,6 +2472,44 @@ function syncShortcutBill(event) {
     reader.readAsText(file);
     event.target.value = ''; 
 }
+  // 交互核心：一键收起/展开上传面板
+function toggleUploadZone() {
+    const container = document.getElementById('uploadContainer');
+    const btn = document.getElementById('toggleZoneBtn');
+    if (!container || !btn) return;
+    
+    // 用更稳妥的 display 显隐切换，完美兼容任何手机浏览器
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        btn.innerText = '▲ 收起面板';
+    } else {
+        container.style.display = 'none';
+        btn.innerText = '▼ 展开面板';
+    }
+}
+
+// 强力去 Bug 探测器：死死盯住 undefined 月，出来一个杀一个
+(function() {
+    function killUndefined() {
+        const curMonth = new Date().getMonth() + 1;
+        // 360度全方位搜刮整个网页的所有文本角落
+        document.querySelectorAll('*').forEach(el => {
+            if (el.children.length === 0 && el.innerText && el.innerText.includes('undefined月')) {
+                el.innerText = el.innerText.replace(/undefined月/g, curMonth + '月');
+            }
+        });
+        
+        // 顺便把状态栏和标题里的残留也一起净化掉
+        const statusText = document.getElementById('f-dsText');
+        if (statusText && statusText.innerText.includes('undefined月')) {
+            statusText.innerText = statusText.innerText.replace(/undefined月/g, curMonth + '月');
+        }
+    }
+    
+    // 在网页刚打开、动态画完图表、或者你用手指戳屏幕时，立体式追踪修复
+    window.addEventListener('load', () => { setInterval(killUndefined, 300); });
+    document.addEventListener('click', () => { setTimeout(killUndefined, 50); });
+})();
 </script>
 
 
