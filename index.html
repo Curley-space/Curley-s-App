@@ -2358,6 +2358,75 @@ function clearAllData() {
   alert('✅ 数据已清空');
   location.reload();
 }
+  // 专门处理快捷指令 txt 账单导入的函数
+function syncShortcutBill(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const content = e.target.result;
+            // 苹果快捷指令追加文本时，每笔账单占一行，我们按换行符拆开
+            const lines = content.split('\n').filter(line => line.trim() !== '');
+            
+            // 获取你网页端现有的账单数组（如果没有就初始化为空数组）
+            let expenseRecords = JSON.parse(localStorage.getItem('expense_records') || '[]');
+            
+            let successCount = 0;
+            let errorCount = 0;
+
+            lines.forEach(line => {
+                try {
+                    const item = JSON.parse(line);
+                    
+                    // 核心缝合：把你快捷指令里吐出来的完美格式，精准装进网页数据库
+                    const newRecord = {
+                        id: 'sc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), // 生成唯一ID
+                        date: item.date,
+                        amount: parseFloat(item.amount),
+                        type: item.type || '支出',          // 收入/支出
+                        mainCategory: item.main_category || '其他', // 你的全新大类（日常/出行）
+                        category: item.category,            // 细分具体小类
+                        remark: item.remark || ''
+                    };
+
+                    // 简单防重：如果日期、金额、备注完全一样，就不重复导入了
+                    const isDuplicate = expenseRecords.some(r => 
+                        r.date === newRecord.date && 
+                        r.amount === newRecord.amount && 
+                        r.remark === newRecord.remark
+                    );
+
+                    if (!isDuplicate) {
+                        expenseRecords.push(newRecord);
+                        successCount++;
+                    }
+                } catch (err) {
+                    // 如果遇到第一行那种错误的测试数据，这里会自动跳过，不崩溃
+                    errorCount++;
+                }
+            });
+
+            // 把合并后的全新大数组，稳稳地重新存回本地缓存
+            localStorage.setItem('expense_records', JSON.stringify(expenseRecords));
+
+            // 弹出超有成就感的成功提示！
+            alert(`✅ 双轨同步成功！\n成功智能增量导入 ${successCount} 笔新账单。${errorCount > 0 ? `\n(自动过滤了 ${errorCount} 笔错误或旧测试格式)` : ''}`);
+            
+            // 刷新页面，让图表和列表瞬间变新
+            location.reload();
+
+        } catch (e) {
+            console.error(e);
+            alert('导入失败：文件读取或解析出现严重错误 ❌');
+        }
+    };
+    
+    // 每次选完清空选择器，方便下一次点击
+    reader.readAsText(file);
+    event.target.value = ''; 
+}
 </script>
 
 
