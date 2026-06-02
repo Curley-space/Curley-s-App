@@ -1881,11 +1881,25 @@ function fRenderGroups(){
     );
 
     const div=document.createElement('div');
+
+if(fOpenedBanks.includes(bank)){
+    div.className='type-group open';
+}else{
     div.className='type-group';
+}
 
     div.innerHTML=`
-      <div class="type-header"
-           onclick="this.parentElement.classList.toggle('open')">
+     <div class="type-header"
+onclick="
+this.parentElement.classList.toggle('open');
+const bankName='${bank}';
+if(this.parentElement.classList.contains('open')){
+    if(!fOpenedBanks.includes(bankName))
+        fOpenedBanks.push(bankName);
+}else{
+    fOpenedBanks=fOpenedBanks.filter(b=>b!==bankName);
+}
+">
 
         <div class="th-left">
           <div class="th-name">${bank}</div>
@@ -2116,10 +2130,23 @@ function fSaveEdit(){
   fCloseModal('fEditModal');
 }
 function fDeleteAsset(id){
-  const acc=fWorkingRecord.accounts.find(a=>a.id===id);
-  if(!confirm(`确认删除「${acc?.name}」？`)) return;
-  fWorkingRecord.accounts=fWorkingRecord.accounts.filter(a=>a.id!==id);
-  fSaveAssets();fRenderAssets();
+
+    // 删除前记录当前展开银行
+    fOpenedBanks = Array.from(
+    document.querySelectorAll('.type-group.open')
+).map(el =>
+    el.querySelector('.th-name')?.textContent
+);
+
+    const acc=fWorkingRecord.accounts.find(a=>a.id===id);
+
+    if(!confirm(`确认删除【${acc?.name}】？`)) return;
+
+    fWorkingRecord.accounts=
+        fWorkingRecord.accounts.filter(a=>a.id!==id);
+
+    fSaveAssets();
+    fRenderAssets();
 }
 function fSwipeStart(e){fStartX=e.touches[0].clientX;}
 function fSwipeMove(e,card){const diff=fStartX-e.touches[0].clientX;if(diff>40)card.classList.add('swiped');if(diff<-20)card.classList.remove('swiped');}
