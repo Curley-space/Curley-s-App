@@ -1026,8 +1026,10 @@ body {
   <!-- ══ 财务数据页 ══ -->
   <div class="page" id="page-finance">
     <div class="tab-bar">
-      <button class="nav-tab active" onclick="switchFinanceTab('cashflow')">收支分析</button>
-<button class="nav-tab" onclick="switchFinanceTab('assets')">资产总览</button>
+      <div class="tab-bar" style="margin-bottom: 15px;">
+            <button class="tab-btn active" onclick="switchFinanceTab('cashflow', this)">收支分析</button>
+            <button class="tab-btn" onclick="switchFinanceTab('assets', this)">资产总览</button>
+          </div>
     </div>
     <div class="tab-content">
      <div class="tab-pane" id="ftab-assets">
@@ -2512,8 +2514,8 @@ function toggleUploadZone() {
     window.addEventListener('load', () => { setInterval(killUndefined, 300); });
     document.addEventListener('click', () => { setTimeout(killUndefined, 50); });
 })();
-  // ════════════════════════════════════
-// 资产小眼睛防偷窥控制中心
+ // ════════════════════════════════════
+// 资产小眼睛防偷窥控制中心（智能安全重绘版）
 // ════════════════════════════════════
 window.isAssetHidden = true; // 默认进来就是隐私隐藏状态
 
@@ -2522,11 +2524,17 @@ function toggleAssetPrivacy() {
     const btn = document.getElementById('privacyBtn');
     if (btn) btn.innerText = window.isAssetHidden ? '👁️' : '🙈';
     
-    // 原地重新加载数据，让图表和资产列表根据最新的小眼睛状态重新画一遍
+    // 1. 先安全重绘资产大列表
     if (typeof fRenderAssets === 'function') { fRenderAssets(); }
-    if (typeof fLoadData === 'function') { fLoadData(); }
+    
+    // 2. 安全重绘收支分析（先探测是否有账单数据，防止本地为空时 chart 崩溃）
+    const hasExpense = localStorage.getItem('expense_records');
+    if (hasExpense && hasExpense !== '[]') {
+        if (typeof fLoadData === 'function') { fLoadData(); }
+    }
 }
-  // ════════════════════════════════════
+
+// ════════════════════════════════════
 // 资产子项动态编辑中心（全面支持招商银行等自定义分类）
 // ════════════════════════════════════
 function fEditAssetItem(catName, itemId) {
@@ -2535,8 +2543,7 @@ function fEditAssetItem(catName, itemId) {
     modal.dataset.catName = catName;
     modal.dataset.itemId = itemId;
 
-    let assetRecords = JSON.parse(localStorage.getItem('asset_records')) || (typeof fGetDefaultAssets === 'function' ? fGetDefaultAssets() : []);
-    
+    let assetRecords = JSON.parse(localStorage.getItem('asset_records')) || [];
     let targetItem = null;
     let targetCat = assetRecords.find(c => c.category === catName || c.id === catName);
     
@@ -2555,7 +2562,7 @@ function fEditAssetItem(catName, itemId) {
 }
 
 // ════════════════════════════════════
-// 资产子项保存中心（彻底修复招行保存失败Bug）
+// 资产子项保存中心（精确重绘资产，绝不越界引发闪退）
 // ════════════════════════════════════
 function fSaveAssetItem() {
     const modal = document.getElementById('assetItemModal');
@@ -2583,8 +2590,8 @@ function fSaveAssetItem() {
             localStorage.setItem('asset_records', JSON.stringify(assetRecords));
             modal.style.display = 'none';
             
+            // 🌟 核心修正：修改资产只用重绘资产卡片列表，绝不越界去碰收支图表
             if (typeof fRenderAssets === 'function') { fRenderAssets(); }
-            if (typeof fLoadData === 'function') { fLoadData(); }
             return;
         }
     }
