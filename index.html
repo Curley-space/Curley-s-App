@@ -1025,8 +1025,7 @@ body {
 
   <!-- ══ 财务数据页 ══ -->
   <div class="page" id="page-finance">
-    <div class="tab-bar">
-      <div class="tab-bar" style="margin-bottom: 15px;">
+    <div class="tab-bar finance-tabs" style="margin-bottom: 15px;">
             <button class="tab-btn active" onclick="switchFinanceTab('cashflow', this)">收支分析</button>
             <button class="tab-btn" onclick="switchFinanceTab('assets', this)">资产总览</button>
           </div>
@@ -1087,7 +1086,7 @@ body {
         <div class="section-label">历史快照</div>
         <div id="f-historyList"></div>
       </div>
-      <div class="tab-pane" id="ftab-cashflow">
+      <div class="tab-pane active" id="ftab-cashflow">
           <div class="card" style="margin: 10px 0 15px 0; padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
