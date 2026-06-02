@@ -1087,6 +1087,13 @@ body {
           <div class="uz-title">上传交易数据 CSV</div>
           <div class="uz-sub">从 Numbers 导出「交易数据-交易.csv」后上传</div>
         </div>
+        <!-- 快捷指令 TXT 同步框框 -->
+          <div class="upload-zone" onclick="document.getElementById('shortcutFileInput').click()">
+            <div class="uz-icon">🔄</div>
+            <div class="uz-title">同步快捷指令数据 TXT</div>
+            <div class="uz-sub">从 iCloud 云盘导入「time_orbit_sync.txt」</div>
+          </div>
+          <input type="file" style="display:none;" id="shortcutFileInput" accept=".txt" onchange="syncShortcutBill(event)">
         <input type="file" style="display:none" id="f-csvInput" accept=".csv" onchange="fHandleCSV(event)">
         <div class="data-status" id="f-dataStatus">
           <span class="ds-text" id="f-dsText">已加载数据</span>
