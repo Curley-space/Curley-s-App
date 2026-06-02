@@ -1032,8 +1032,12 @@ body {
     <div class="tab-content">
      <div class="tab-pane" id="ftab-assets">
         <div class="total-card">
-          <div class="total-label">总资产</div>
-          <div class="total-amount" id="f-totalAmount">¥0</div>
+         <div class="total-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span>总资产</span>
+              <!-- 超级精致的隐私小眼睛 -->
+              <button onclick="toggleAssetPrivacy()" id="privacyBtn" style="background: none; border: none; color: #deb887; font-size: 16px; cursor: pointer; padding: 0 5px; outline: none;">👁️</button>
+            </div>
+            <div class="total-amount" id="f-totalAmount">¥ ******</div>
           <div class="total-meta">
             <div class="total-meta-item">
               <div class="tm-label">较上次变化</div>
@@ -2508,6 +2512,84 @@ function toggleUploadZone() {
     window.addEventListener('load', () => { setInterval(killUndefined, 300); });
     document.addEventListener('click', () => { setTimeout(killUndefined, 50); });
 })();
+  // ════════════════════════════════════
+// 资产小眼睛防偷窥控制中心
+// ════════════════════════════════════
+window.isAssetHidden = true; // 默认进来就是隐私隐藏状态
+
+function toggleAssetPrivacy() {
+    window.isAssetHidden = !window.isAssetHidden;
+    const btn = document.getElementById('privacyBtn');
+    if (btn) btn.innerText = window.isAssetHidden ? '👁️' : '🙈';
+    
+    // 原地重新加载数据，让图表和资产列表根据最新的小眼睛状态重新画一遍
+    if (typeof fRenderAssets === 'function') { fRenderAssets(); }
+    if (typeof fLoadData === 'function') { fLoadData(); }
+}
+  // ════════════════════════════════════
+// 资产子项动态编辑中心（全面支持招商银行等自定义分类）
+// ════════════════════════════════════
+function fEditAssetItem(catName, itemId) {
+    const modal = document.getElementById('assetItemModal');
+    if (!modal) return;
+    modal.dataset.catName = catName;
+    modal.dataset.itemId = itemId;
+
+    let assetRecords = JSON.parse(localStorage.getItem('asset_records')) || (typeof fGetDefaultAssets === 'function' ? fGetDefaultAssets() : []);
+    
+    let targetItem = null;
+    let targetCat = assetRecords.find(c => c.category === catName || c.id === catName);
+    
+    if (targetCat && targetCat.items) {
+        targetItem = targetCat.items.find(i => i.id === itemId);
+    }
+
+    if (!targetItem) {
+        alert('⚠️ 无法读取该账户数据，请刷新重试');
+        return;
+    }
+
+    document.getElementById('f-aiName').value = targetItem.name;
+    document.getElementById('f-aiBalance').value = targetItem.balance;
+    modal.style.display = 'flex';
+}
+
+// ════════════════════════════════════
+// 资产子项保存中心（彻底修复招行保存失败Bug）
+// ════════════════════════════════════
+function fSaveAssetItem() {
+    const modal = document.getElementById('assetItemModal');
+    if (!modal) return;
+    
+    const catName = modal.dataset.catName;
+    const itemId = modal.dataset.itemId;
+    const newName = document.getElementById('f-aiName').value.trim();
+    const newBalance = parseFloat(document.getElementById('f-aiBalance').value) || 0;
+
+    if (!newName) {
+        alert('请输入账户名称');
+        return;
+    }
+
+    let assetRecords = JSON.parse(localStorage.getItem('asset_records')) || [];
+    let targetCat = assetRecords.find(c => c.category === catName || c.id === catName);
+    
+    if (targetCat && targetCat.items) {
+        let targetItem = targetCat.items.find(i => i.id === itemId);
+        if (targetItem) {
+            targetItem.name = newName;
+            targetItem.balance = newBalance;
+            
+            localStorage.setItem('asset_records', JSON.stringify(assetRecords));
+            modal.style.display = 'none';
+            
+            if (typeof fRenderAssets === 'function') { fRenderAssets(); }
+            if (typeof fLoadData === 'function') { fLoadData(); }
+            return;
+        }
+    }
+    alert('❌ 保存失败，找不到对应的资产分类索引');
+}
 </script>
 </body>
 </html>
