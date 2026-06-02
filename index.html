@@ -1035,7 +1035,7 @@ body {
          <div class="total-label" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
               <span>总资产</span>
               <!-- 超级精致的隐私小眼睛 -->
-              <button onclick="toggleAssetPrivacy()" id="privacyBtn" style="background: none; border: none; color: #deb887; font-size: 16px; cursor: pointer; padding: 0 5px; outline: none;">👁️</button>
+              <button onclick="toggleAssetPrivacy()" id="privacyBtn" style="background: none; border: none; color: #deb887; font-size: 16px; cursor: pointer; padding: 0 5px; outline: none;">🙈</button>
             </div>
             <div class="total-amount" id="f-totalAmount">¥ ******</div>
           <div class="total-meta">
@@ -1182,6 +1182,38 @@ body {
         <input type="file" accept=".json" style="display:none" onchange="importBackup(event)">
       </label>
       <button onclick="clearAllData()" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--err);background:transparent;color:var(--err);font-size:14px;font-weight:600;cursor:pointer;margin-top:4px">🗑️ 清空所有数据</button>
+    </div>
+  </div>
+</div>
+
+<!-- 体重历史编辑 Modal -->
+<div class="modal" id="wEditModal" onclick="if(event.target===this)wCloseEditModal()">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3 id="wEditTitle">编辑记录</h3>
+      <button class="modal-close" onclick="wCloseEditModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>🌅 晨起空腹 (kg)</label>
+        <input type="text" inputmode="decimal" id="wedit-morning" placeholder="--.-">
+      </div>
+      <div class="form-group">
+        <label>🌙 晚间睡前 (kg)</label>
+        <input type="text" inputmode="decimal" id="wedit-evening" placeholder="--.-">
+      </div>
+      <div class="form-group">
+        <label>💧 饮水量 (ml)</label>
+        <input type="number" inputmode="numeric" id="wedit-water" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>备注标签</label>
+        <div id="wedit-noteGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="wCloseEditModal()">取消</button>
+      <button class="btn-confirm" onclick="wSaveEditModal()">保存</button>
     </div>
   </div>
 </div>
@@ -1477,13 +1509,56 @@ function wRenderHistory() {
         <div class="history-stat"><div class="hs-label">差值</div><div class="hs-val" style="${dc}">${diff!==null?(diff>0?'+':'')+diff.toFixed(1):'--'}</div></div>
         <div class="history-stat"><div class="hs-label">饮水</div><div class="hs-val" style="color:var(--blue)">${r.water||0}ml</div></div>
       </div>
-      <button class="history-del" onclick="wDeleteRecord('${r.date}')">删除</button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="history-del" style="flex:1;margin-top:0" onclick="wOpenEditModal('${r.date}')">编辑</button>
+        <button class="history-del" style="flex:1;margin-top:0;color:var(--err);border-color:var(--err)" onclick="wDeleteRecord('${r.date}')">删除</button>
+      </div>
     </div>`;
   }).join('');
 }
 function wDeleteRecord(date) {
   if(!confirm(`确认删除 ${date} 的记录？`)) return;
   wSaveRecords(wLoadRecords().filter(r=>r.date!==date));
+  wUpdateStatusCard(); wRenderHistory();
+}
+
+let wEditingDate = null;
+let wEditingNote = '状态正常';
+
+function wOpenEditModal(date) {
+  const r = wLoadRecords().find(x => x.date === date);
+  if (!r) return;
+  wEditingDate = date;
+  wEditingNote = r.note || '状态正常';
+  document.getElementById('wEditTitle').textContent = '编辑 ' + date;
+  document.getElementById('wedit-morning').value = r.morning ?? '';
+  document.getElementById('wedit-evening').value = r.evening ?? '';
+  document.getElementById('wedit-water').value = r.water ?? 0;
+  wRenderEditNoteGrid();
+  document.getElementById('wEditModal').classList.add('open');
+}
+function wCloseEditModal() {
+  document.getElementById('wEditModal').classList.remove('open');
+  wEditingDate = null;
+}
+function wRenderEditNoteGrid() {
+  document.getElementById('wedit-noteGrid').innerHTML = NOTE_OPTIONS.map(n =>
+    `<button class="note-btn ${n === wEditingNote ? 'active' : ''}" onclick="wEditSelectNote('${n}')">${n}</button>`
+  ).join('');
+}
+function wEditSelectNote(n) { wEditingNote = n; wRenderEditNoteGrid(); }
+function wSaveEditModal() {
+  if (!wEditingDate) return;
+  const m = parseFloat(document.getElementById('wedit-morning').value.replace(/[^0-9.]/g,''));
+  const e = parseFloat(document.getElementById('wedit-evening').value.replace(/[^0-9.]/g,''));
+  const w = parseInt(document.getElementById('wedit-water').value) || 0;
+  if (isNaN(m) && isNaN(e)) { alert('请至少填写晨起或晚间体重'); return; }
+  const records = wLoadRecords();
+  const idx = records.findIndex(r => r.date === wEditingDate);
+  if (idx < 0) return;
+  records[idx] = { ...records[idx], morning: isNaN(m) ? null : m, evening: isNaN(e) ? null : e, water: w, note: wEditingNote };
+  wSaveRecords(records);
+  wCloseEditModal();
   wUpdateStatusCard(); wRenderHistory();
 }
 
@@ -1773,10 +1848,10 @@ function fRenderAssets(){
   document.getElementById('f-updateTime').textContent=`${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   let liquid=0,finance=0,pension=0,fx=0;
   fWorkingRecord.accounts.forEach(a=>{const v=fCalcVal(a);if(a.type==='活期')liquid+=v;if(a.type==='理财')finance+=v;if(a.type==='养老金')pension+=v;if(a.currency!=='CNY')fx+=v;});
-  document.getElementById('f-mc-liquid').textContent='¥'+fFmt(liquid);
-  document.getElementById('f-mc-finance').textContent='¥'+fFmt(finance);
-  document.getElementById('f-mc-pension').textContent='¥'+fFmt(pension);
-  document.getElementById('f-mc-fx').textContent=total>0?(fx/total*100).toFixed(1)+'%':'0%';
+  document.getElementById('f-mc-liquid').textContent='¥'+fMaskMoney(liquid);
+  document.getElementById('f-mc-finance').textContent='¥'+fMaskMoney(finance);
+  document.getElementById('f-mc-pension').textContent='¥'+fMaskMoney(pension);
+  document.getElementById('f-mc-fx').textContent=window.isAssetHidden ? '***%' : (total>0?(fx/total*100).toFixed(1)+'%':'0%');
   fRenderGroups(); fRenderFHistory();
 }
 function fRenderGroups(){
@@ -1834,8 +1909,7 @@ function fRenderGroups(){
               删除
             </div>
 
-            <div class="account-content"
-                 onclick="fOpenEditModal('${a.id}','${a.name}',${a.amount})">
+            <div class="account-content">
 
               <div class="account-top">
 
@@ -1845,17 +1919,24 @@ function fRenderGroups(){
 
                 <span class="acc-val">
                   ${a.currency==='USD' ? '$' : '¥'}
-                  ${fFmtFull(a.amount)}
+                  ${window.isAssetHidden ? '******' : fFmtFull(a.amount)}
                 </span>
 
               </div>
 
               ${a.currency==='USD'
                 ? `<div class="acc-sub">
-                     ≈ ¥${fFmtFull(fCalcVal(a))}
+                     ≈ ¥${window.isAssetHidden ? '******' : fFmtFull(fCalcVal(a))}
                    </div>`
                 : ''
               }
+
+              <button onclick="fOpenEditModal('${a.id}','${a.name}',${a.amount})"
+                style="margin-top:8px;width:100%;padding:5px;border-radius:8px;
+                       border:0.5px solid var(--border);font-size:11px;
+                       color:var(--muted);background:none;cursor:pointer;">
+                编辑
+              </button>
 
             </div>
 
@@ -1892,7 +1973,7 @@ function fToggleTrend(){
   }
 }
 function fOpenModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow = 'hidden';}
-function fCloseModal(id){document.getElementById(id).classList.remove('open');}document.body.style.overflow = '';
+function fCloseModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow = '';}
 function fOpenAddModal(){
   document.getElementById('f-add-bank').selectedIndex=0;
   document.getElementById('f-add-type').value='活期';
@@ -2525,7 +2606,7 @@ window.isAssetHidden = true; // 默认进来就是隐私隐藏状态
 function toggleAssetPrivacy() {
     window.isAssetHidden = !window.isAssetHidden;
     const btn = document.getElementById('privacyBtn');
-    if (btn) btn.innerText = window.isAssetHidden ? '👁️' : '🙈';
+    if (btn) btn.innerText = window.isAssetHidden ? '🙈' : '👀';
     
     // 1. 先安全重绘资产大列表
     if (typeof fRenderAssets === 'function') { fRenderAssets(); }
@@ -2535,70 +2616,6 @@ function toggleAssetPrivacy() {
     if (hasExpense && hasExpense !== '[]') {
         if (typeof fLoadData === 'function') { fLoadData(); }
     }
-}
-
-// ════════════════════════════════════
-// 资产子项动态编辑中心（全面支持招商银行等自定义分类）
-// ════════════════════════════════════
-function fEditAssetItem(catName, itemId) {
-    const modal = document.getElementById('assetItemModal');
-    if (!modal) return;
-    modal.dataset.catName = catName;
-    modal.dataset.itemId = itemId;
-
-    let assetRecords = JSON.parse(localStorage.getItem('asset_records')) || [];
-    let targetItem = null;
-    let targetCat = assetRecords.find(c => c.category === catName || c.id === catName);
-    
-    if (targetCat && targetCat.items) {
-        targetItem = targetCat.items.find(i => i.id === itemId);
-    }
-
-    if (!targetItem) {
-        alert('⚠️ 无法读取该账户数据，请刷新重试');
-        return;
-    }
-
-    document.getElementById('f-aiName').value = targetItem.name;
-    document.getElementById('f-aiBalance').value = targetItem.balance;
-    modal.style.display = 'flex';
-}
-
-// ════════════════════════════════════
-// 资产子项保存中心（精确重绘资产，绝不越界引发闪退）
-// ════════════════════════════════════
-function fSaveAssetItem() {
-    const modal = document.getElementById('assetItemModal');
-    if (!modal) return;
-    
-    const catName = modal.dataset.catName;
-    const itemId = modal.dataset.itemId;
-    const newName = document.getElementById('f-aiName').value.trim();
-    const newBalance = parseFloat(document.getElementById('f-aiBalance').value) || 0;
-
-    if (!newName) {
-        alert('请输入账户名称');
-        return;
-    }
-
-    let assetRecords = JSON.parse(localStorage.getItem('asset_records')) || [];
-    let targetCat = assetRecords.find(c => c.category === catName || c.id === catName);
-    
-    if (targetCat && targetCat.items) {
-        let targetItem = targetCat.items.find(i => i.id === itemId);
-        if (targetItem) {
-            targetItem.name = newName;
-            targetItem.balance = newBalance;
-            
-            localStorage.setItem('asset_records', JSON.stringify(assetRecords));
-            modal.style.display = 'none';
-            
-            // 🌟 核心修正：修改资产只用重绘资产卡片列表，绝不越界去碰收支图表
-            if (typeof fRenderAssets === 'function') { fRenderAssets(); }
-            return;
-        }
-    }
-    alert('❌ 保存失败，找不到对应的资产分类索引');
 }
 </script>
 </body>
