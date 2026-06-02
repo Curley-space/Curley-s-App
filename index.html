@@ -1892,7 +1892,7 @@ function fRenderGroups(){
         </div>
 
         <div class="th-total">
-          ¥${fFmt(bankTotal)}
+          ${window.isAssetHidden ? '¥ ******' : '¥'+fFmt(bankTotal)}
         </div>
 
       </div>
