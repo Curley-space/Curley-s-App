@@ -1028,7 +1028,6 @@ body {
     <div class="tab-bar finance-tabs" style="margin-bottom: 15px;">
             <button class="tab-btn active" onclick="switchFinanceTab('cashflow', this)">收支分析</button>
             <button class="tab-btn" onclick="switchFinanceTab('assets', this)">资产总览</button>
-          </div>
     </div>
     <div class="tab-content">
      <div class="tab-pane" id="ftab-assets">
@@ -1758,9 +1757,14 @@ function fInitAssets(){
   ]};
   fSaveAssets();
 }
+
+function fMaskMoney(v){
+  return window.isAssetHidden ? '******' : fFmtFull(v);
+}
+
 function fRenderAssets(){
   const total=fCalcTotal(fWorkingRecord);
-  document.getElementById('f-totalAmount').textContent='¥'+fFmtFull(total);
+  document.getElementById('f-totalAmount').textContent='¥'+fMaskMoney(total);
   document.getElementById('f-usdRate').value=fWorkingRecord.usd_rate;
   const data=fGetData(); const changeEl=document.getElementById('f-changeVal');
   if(data.length>=2){const prev=fCalcTotal(data[data.length-2]);const diff=total-prev;changeEl.textContent=(diff>=0?'+':'')+'¥'+fFmtFull(diff);changeEl.className='tm-val '+(diff>=0?'positive':'negative');}
