@@ -2409,6 +2409,7 @@ function fOCRApply(accId, amt, raw) {
 document.getElementById('today-date').textContent=new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric'});
 wInit();
 bInit();
+  window.isAssetHidden = true; // 默认进来就是隐私隐藏状态
 fInitAssets();
 fRenderAssets();
 fInitCashflow();
@@ -2606,7 +2607,7 @@ function toggleUploadZone() {
  // ════════════════════════════════════
 // 资产小眼睛防偷窥控制中心（智能安全重绘版）
 // ════════════════════════════════════
-window.isAssetHidden = true; // 默认进来就是隐私隐藏状态
+
 
 function toggleAssetPrivacy() {
     window.isAssetHidden = !window.isAssetHidden;
