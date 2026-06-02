@@ -1910,7 +1910,8 @@ function fRenderGroups(){
               删除
             </div>
 
-            <div class="account-content">
+            <div class="account-content"
+     onclick="fOpenEditModal('${a.id}','${a.name}',${a.amount})">
 
               <div class="account-top">
 
@@ -1931,13 +1932,6 @@ function fRenderGroups(){
                    </div>`
                 : ''
               }
-
-              <button onclick="fOpenEditModal('${a.id}','${a.name}',${a.amount})"
-                style="margin-top:8px;width:100%;padding:5px;border-radius:8px;
-                       border:0.5px solid var(--border);font-size:11px;
-                       color:var(--muted);background:none;cursor:pointer;">
-                编辑
-              </button>
 
             </div>
 
