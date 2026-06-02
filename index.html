@@ -1288,7 +1288,7 @@ body {
 
   <div class="form-group">
     <label>金额</label>
-    <input type="number"
+    <input type="text" inputmode="decimal"
            id="f-edit-amount"
            placeholder="0.00"
            step="0.01">
@@ -1335,6 +1335,7 @@ function switchFinanceTab(name, btn) {
   document.querySelectorAll('#page-finance .tab-pane').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('ftab-'+name).classList.add('active');
+  if (name === 'assets' && typeof fRenderAssets === 'function') { fRenderAssets(); }
 }
 
 // ════════════════════════════════════
@@ -2084,6 +2085,10 @@ function fOpenEditModal(id,name,amount){
   document.getElementById('f-edit-amount').value=amount;
 
   fOpenModal('fEditModal');
+  setTimeout(() => {
+    const inp = document.getElementById('f-edit-amount');
+    if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }, 200);
 }
 
 function fSaveEdit(){
