@@ -2446,25 +2446,27 @@ function syncShortcutBill(event) {
             });
 
             // 把合并后的全新大数组，稳稳地重新存回本地缓存
-            localStorage.setItem('expense_records', JSON.stringify(expenseRecords));
+localStorage.setItem('expense_records', JSON.stringify(expenseRecords));
             
-            // 🌟 原地丝滑升级：通知网页静默重绘图表，不再跳回开屏！
+            // 🌟 终极丝滑升级：彻底删掉 location.reload()，用原生态 DOM 注入
             alert(`✅ 双轨同步成功！\n成功智能增量导入 ${successCount} 笔新账单。`);
             
-            if (typeof fHandleCSVSuccess === 'function') {
-                fHandleCSVSuccess(); 
-            } else if (typeof fLoadData === 'function') {
-                fLoadData();
-            } else {
-                location.reload(); // 降级备用
-            }
+            // 1. 尝试原地唤醒系统自带的图表刷新
+            if (typeof fHandleCSVSuccess === 'function') { fHandleCSVSuccess(); }
+            else if (typeof fLoadData === 'function') { fLoadData(); }
+            else if (typeof loadData === 'function') { loadData(); }
+            else if (typeof initCharts === 'function') { initCharts(); }
+            
+            // 2. 强力安全垫：万一图表没动，也绝不刷新网页，直接弹出状态提示，点一下就能看到数据
+            const statusBox = document.getElementById('f-dataStatus');
+            const statusText = document.getElementById('f-dsText');
+            if (statusBox) statusBox.style.display = 'block';
+            if (statusText) statusText.innerHTML = `✨ 快捷指令数据已智能同步！(新增 ${successCount} 条)<br><small style="opacity:0.5;">切换其他标签页再切回来，即可刷新图表</small>`;
 
-            // 智能加糖：成功导入后，让大面板自动闭合缩回去
-            setTimeout(() => { toggleUploadZone(); }, 300);
-
-        } catch (e) {
-            console.error(e);
-            alert('导入失败：文件读取或解析出现严重错误 ❌');
+            // 智能细节：成功导入后，让大面板自动闭合缩回去
+            setTimeout(() => { 
+                if (typeof toggleUploadZone === 'function') toggleUploadZone(); 
+            }, 300);
         }
     };
     
