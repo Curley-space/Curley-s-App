@@ -2024,6 +2024,7 @@ function fOpenEditModal(id,name,amount){
   document.getElementById('f-edit-amount').value=amount;
 
   fOpenModal('fEditModal');
+  alert('editModal display='+document.getElementById('fEditModal').style.display+' class='+document.getElementById('fEditModal').className);
   setTimeout(() => {
     const inp = document.getElementById('f-edit-amount');
     if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
