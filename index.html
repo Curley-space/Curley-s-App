@@ -1843,7 +1843,7 @@ function fRenderAssets(){
   document.getElementById('f-totalAmount').textContent='¥'+fMaskMoney(total);
   document.getElementById('f-usdRate').value=fWorkingRecord.usd_rate;
   const data=fGetData(); const changeEl=document.getElementById('f-changeVal');
-  if(data.length>=2){const prev=fCalcTotal(data[data.length-2]);const diff=total-prev;changeEl.textContent=(diff>=0?'+':'')+'¥'+fFmtFull(diff);changeEl.className='tm-val '+(diff>=0?'positive':'negative');}
+  if(data.length>=2){const prev=fCalcTotal(data[data.length-2]);const diff=total-prev;changeEl.textContent=window.isAssetHidden?'¥ ******':(diff>=0?'+':'')+'¥'+fFmtFull(diff);changeEl.className='tm-val '+(diff>=0?'positive':'negative');}
   else{changeEl.textContent='—';changeEl.className='tm-val';}
   const d=new Date(fWorkingRecord.updated_at);
   document.getElementById('f-updateTime').textContent=`${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -1965,8 +1965,8 @@ function fRenderFHistory(){
   wrap.innerHTML=[...data].reverse().map((r,i)=>{
     const total=fCalcTotal(r);const origIdx=data.length-1-i;
     let diffHTML='<span class="fhi-diff">—</span>';
-    if(origIdx>0){const diff=total-fCalcTotal(data[origIdx-1]);diffHTML=`<span class="fhi-diff ${diff>=0?'pos':'neg'}">${diff>=0?'+':''}¥${fFmtFull(diff)}</span>`;}
-    return `<div class="finance-history-item"><div><div class="fhi-date">${r.date}</div><div class="fhi-total">¥${fFmtFull(total)}</div></div>${diffHTML}</div>`;
+    if(origIdx>0){const diff=total-fCalcTotal(data[origIdx-1]);diffHTML=`<span class="fhi-diff ${diff>=0?'pos':'neg'}">${window.isAssetHidden?'¥ ******':(diff>=0?'+':'')+'¥'+fFmtFull(diff)}</span>`;}
+    return `<div class="finance-history-item"><div><div class="fhi-date">${r.date}</div><div class="fhi-total">${window.isAssetHidden?'¥ ******':'¥'+fFmtFull(total)}</div></div>${diffHTML}</div>`;
   }).join('');
 }
 function fSaveRate(){fWorkingRecord.usd_rate=parseFloat(document.getElementById('f-usdRate').value)||7.25;fSaveAssets();fRenderAssets();}
@@ -1978,7 +1978,7 @@ function fToggleTrend(){
     if(data.length<2){empty.style.display='block';canvas.style.display='none';return;}
     empty.style.display='none';canvas.style.display='block';
     if(fTrendChart)fTrendChart.destroy();
-    fTrendChart=new Chart(canvas,{type:'line',data:{labels:data.map(d=>d.date.slice(5)),datasets:[{data:data.map(d=>fCalcTotal(d)),borderColor:'#c0622a',borderWidth:2.5,tension:0.35,pointRadius:4,pointBackgroundColor:'#c0622a',fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+    fTrendChart=new Chart(canvas,{type:'line',data:{labels:data.map(d=>d.date.slice(5)),datasets:[{data:data.map(d=>fCalcTotal(d)),borderColor:'#d9b67a',borderWidth:2.5,tension:0.35,pointRadius:4,pointBackgroundColor:'#d9b67a',fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
   }
 }
 function fOpenModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow = 'hidden';}
@@ -2254,14 +2254,14 @@ function fToggleCatDetail(el){
 function fRenderPieChart(cats){
   const canvas=document.getElementById('f-pieChart');
   if(fPieChart)fPieChart.destroy();if(!cats.length) return;
-  fPieChart=new Chart(canvas,{type:'doughnut',data:{labels:cats.map(([c])=>c),datasets:[{data:cats.map(([,v])=>v),backgroundColor:cats.map(([c])=>F_CAT_COLORS[c]||F_CAT_COLORS['其他']),borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ¥${fFmt(ctx.raw)}`}}}}});
+  fPieChart=new Chart(canvas,{type:'doughnut',data:{labels:cats.map(([c])=>c),datasets:[{data:cats.map(([,v])=>v),backgroundColor:cats.map(([c])=>F_CAT_COLORS[c]||F_CAT_COLORS['其他']),borderWidth:2,borderColor:'#0d1b3e'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,color:'#c8b99a'}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ¥${fFmt(ctx.raw)}`}}}}});
 }
 function fRenderBarChart(months){
   const canvas=document.getElementById('f-barChart');
   if(fBarChart)fBarChart.destroy();if(months.length<2) return;
   const incomes=months.map(m=>fAllTxs.filter(t=>t.month===m&&t.type==='收入').reduce((s,t)=>s+t.amount,0));
   const expenses=months.map(m=>fAllTxs.filter(t=>t.month===m&&t.type==='支出').reduce((s,t)=>s+t.amount,0));
-  fBarChart=new Chart(canvas,{type:'bar',data:{labels:months.map(m=>m+'月'),datasets:[{label:'收入',data:incomes,backgroundColor:'rgba(45,122,79,0.7)',borderRadius:4},{label:'支出',data:expenses,backgroundColor:'rgba(176,48,48,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{display:true,grid:{color:'#f0ece4'},ticks:{font:{size:9},color:'#aaa',callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v}}}}});
+  fBarChart=new Chart(canvas,{type:'bar',data:{labels:months.map(m=>m+'月'),datasets:[{label:'收入',data:incomes,backgroundColor:'rgba(100,200,130,0.75)',borderRadius:4},{label:'支出',data:expenses,backgroundColor:'rgba(220,90,90,0.75)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,color:'#c8b99a'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#8a7a68'}},y:{display:true,grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9},color:'#8a7a68',callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v}}}}});
 }
 
 // ════════════════════════════════════
