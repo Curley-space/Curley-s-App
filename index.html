@@ -706,6 +706,7 @@ body {
   background:var(--card); border-radius:14px; border:0.5px solid var(--border);
   padding:14px; margin-bottom:12px;
 }
+#f-pieCard { padding:10px 14px 6px; }
 .chart-card .cc-title { font-size:13px; font-weight:600; margin-bottom:12px; }
 .category-list { display:flex; flex-direction:column; gap:0; }
 .category-item-wrap { margin-bottom:6px; }
@@ -1130,7 +1131,7 @@ body {
         </div>
         <div class="chart-card" id="f-pieCard" style="display:none">
           <div class="cc-title">支出分类占比</div>
-          <canvas id="f-pieChart" style="height:220px;max-height:220px;"></canvas>
+          <canvas id="f-pieChart" style="height:180px;max-height:180px;"></canvas>
         </div>
         <div class="chart-card" id="f-catCard" style="display:none">
           <div class="cc-title">支出分类明细</div>
@@ -1138,7 +1139,7 @@ body {
         </div>
         <div class="chart-card" id="f-barCard" style="display:none">
           <div class="cc-title">月度收支对比</div>
-          <canvas id="f-barChart" height="160"></canvas>
+          <canvas id="f-barChart" style="height:160px;max-height:160px;"></canvas>
         </div>
         <div class="empty-hint" id="f-cashflowEmpty">上传 CSV 文件后显示收支分析</div>
       </div>
@@ -2202,14 +2203,14 @@ function fToggleCatDetail(el){
 function fRenderPieChart(cats){
   const canvas=document.getElementById('f-pieChart');
   if(fPieChart)fPieChart.destroy();if(!cats.length) return;
-  fPieChart=new Chart(canvas,{type:'doughnut',data:{labels:cats.map(([c])=>c),datasets:[{data:cats.map(([,v])=>v),backgroundColor:cats.map(([c])=>F_CAT_COLORS[c]||F_CAT_COLORS['其他']),borderWidth:2,borderColor:'#0d1b3e'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,color:'#c8b99a'}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ¥${fFmt(ctx.raw)}`}}}}});
+  fPieChart=new Chart(canvas,{type:'doughnut',data:{labels:cats.map(([c])=>c),datasets:[{data:cats.map(([,v])=>v),backgroundColor:cats.map(([c])=>F_CAT_COLORS[c]||F_CAT_COLORS['其他']),borderWidth:2,borderColor:'#0d1b3e'}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,color:'#c8b99a'}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ¥${fFmt(ctx.raw)}`}}}}});
 }
 function fRenderBarChart(months){
   const canvas=document.getElementById('f-barChart');
   if(fBarChart)fBarChart.destroy();if(months.length<2) return;
   const incomes=months.map(m=>fAllTxs.filter(t=>t.month===m&&t.type==='收入').reduce((s,t)=>s+t.amount,0));
   const expenses=months.map(m=>fAllTxs.filter(t=>t.month===m&&t.type==='支出').reduce((s,t)=>s+t.amount,0));
-  fBarChart=new Chart(canvas,{type:'bar',data:{labels:months.map(m=>m+'月'),datasets:[{label:'收入',data:incomes,backgroundColor:'rgba(100,200,130,0.75)',borderRadius:4},{label:'支出',data:expenses,backgroundColor:'rgba(220,90,90,0.75)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,color:'#c8b99a'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#8a7a68'}},y:{display:true,grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9},color:'#8a7a68',callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v}}}}});
+  fBarChart=new Chart(canvas,{type:'bar',data:{labels:months.map(m=>m+'月'),datasets:[{label:'收入',data:incomes,backgroundColor:'rgba(100,200,130,0.75)',borderRadius:4},{label:'支出',data:expenses,backgroundColor:'rgba(220,90,90,0.75)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,color:'#c8b99a'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#8a7a68'}},y:{display:true,grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9},color:'#8a7a68',callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v}}}}});
 }
 
 // ════════════════════════════════════
