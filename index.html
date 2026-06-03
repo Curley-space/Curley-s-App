@@ -2082,23 +2082,21 @@ function fDeleteAsset(id){
 function fSwipeStart(e){fStartX=e.touches[0].clientX;}
 function fSwipeMove(e,card){const diff=fStartX-e.touches[0].clientX;if(diff>40)card.classList.add('swiped');if(diff<-20)card.classList.remove('swiped');}
 document.addEventListener('click',e=>{if(!e.target.closest('.account-card'))document.querySelectorAll('.account-card').forEach(c=>c.classList.remove('swiped'));});
-document.addEventListener('DOMContentLoaded',()=>{
-  document.getElementById('f-assetGroups').addEventListener('touchstart',e=>{
-    const card=e.target.closest('.account-card');
-    if(card){fStartX=e.touches[0].clientX;}
-  },{passive:true});
-  document.getElementById('f-assetGroups').addEventListener('touchmove',e=>{
-    const card=e.target.closest('.account-card');
-    if(card){const diff=fStartX-e.touches[0].clientX;if(diff>40)card.classList.add('swiped');if(diff<-20)card.classList.remove('swiped');}
-  },{passive:true});
-  document.getElementById('f-assetGroups').addEventListener('touchend',e=>{
-    const content=e.target.closest('.account-content');
-    const card=e.target.closest('.account-card');
-    if(content&&card&&!card.classList.contains('swiped')){
-      const id=content.dataset.id,name=content.dataset.name,amount=content.dataset.amount;
-      if(id)fOpenEditModal(id,name,parseFloat(amount));
-    }
-  });
+document.getElementById('f-assetGroups').addEventListener('touchstart',e=>{
+  const card=e.target.closest('.account-card');
+  if(card){fStartX=e.touches[0].clientX;}
+},{passive:true});
+document.getElementById('f-assetGroups').addEventListener('touchmove',e=>{
+  const card=e.target.closest('.account-card');
+  if(card){const diff=fStartX-e.touches[0].clientX;if(diff>40)card.classList.add('swiped');if(diff<-20)card.classList.remove('swiped');}
+},{passive:true});
+document.getElementById('f-assetGroups').addEventListener('touchend',e=>{
+  const content=e.target.closest('.account-content');
+  const card=e.target.closest('.account-card');
+  if(content&&card&&!card.classList.contains('swiped')){
+    const id=content.dataset.id,name=content.dataset.name,amount=content.dataset.amount;
+    if(id)fOpenEditModal(id,name,parseFloat(amount));
+  }
 });
 
 // CSV解析
