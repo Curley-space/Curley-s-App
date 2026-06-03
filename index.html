@@ -22,7 +22,7 @@
   --card: #221e50;
   --border: #3d3880;
 --text: #f0e8d0;
---muted: #9988cc;
+--muted: #e8e0f0;
   --accent: #d9b67a;
   --accent-light: #2a1f0a;
   --blue: #7eb8d4;
@@ -2170,8 +2170,8 @@ function fRenderCashflow(month){
   const expTxs=txs.filter(t=>t.type==='支出');
   const catMap={};expTxs.forEach(t=>{const cat=t.category||'其他';catMap[cat]=(catMap[cat]||0)+t.amount;});
   const cats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
-  fRenderPieChart(cats,total);
   const total=cats.reduce((s,[,v])=>s+v,0);
+fRenderPieChart(cats,total);
   const monthTxs=month==='all'?fAllTxs:fAllTxs.filter(t=>t.month===month);
   document.getElementById('f-categoryList').innerHTML=cats.map(([cat,amt])=>{
     const color=F_CAT_COLORS[cat]||F_CAT_COLORS['其他'];
