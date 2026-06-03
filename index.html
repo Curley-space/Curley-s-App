@@ -1233,75 +1233,6 @@ body {
   </div>
 </div>
 
-<!-- 财务新增 Modal -->
-<div class="modal" id="fAddModal" onclick="if(event.target===this)fCloseModal('fAddModal')">
-  <div class="modal-sheet">
-    <div class="modal-header">
-      <h3>新增账户</h3>
-      <button class="modal-close" onclick="fCloseModal('fAddModal')">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group"><label>银行</label>
-        <select id="f-add-bank">
-          <option>招商银行</option><option>工商银行</option><option>建设银行</option>
-          <option>农业银行</option><option>上海银行</option><option>其他</option>
-        </select>
-      </div>
-      <div class="form-group"><label>类型</label>
-        <select id="f-add-type" onchange="fToggleCustomFinance()">
-          <option value="活期">活期</option>
-          <option value="customFinance">自定义理财</option>
-          <option value="养老金">养老金</option>
-        </select>
-      </div>
-      <div class="form-group" id="f-custom-finance-group" style="display:none">
-        <label>理财名称</label>
-        <input type="text" id="f-custom-finance-name" placeholder="例如：朝朝宝">
-      </div>
-      <div class="form-group"><label>币种</label>
-        <select id="f-add-currency"><option value="CNY">人民币 CNY</option><option value="USD">美元 USD</option></select>
-      </div>
-      <div class="form-group"><label>金额</label><input type="text" inputmode="decimal" id="f-add-amount" placeholder="0.00">
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="fCloseModal('fAddModal')">取消</button>
-      <button class="btn-confirm" onclick="fAddAsset()">添加</button>
-    </div>
-  </div>
-</div>
-
-<!-- 财务编辑 Modal -->
-<div class="modal" id="fEditModal" onclick="if(event.target===this)fCloseModal('fEditModal')">
-  <div class="modal-sheet">
-    <div class="modal-header">
-      <h3 id="f-editTitle">编辑账户</h3>
-      <button class="modal-close" onclick="fCloseModal('fEditModal')">×</button>
-    </div>
-   <div class="modal-body">
-
-  <div class="form-group">
-    <label>账户名称</label>
-    <input type="text"
-           id="f-edit-name"
-           placeholder="请输入账户名称">
-  </div>
-
-  <div class="form-group">
-    <label>金额</label>
-    <input type="text" inputmode="decimal"
-           id="f-edit-amount"
-           placeholder="0.00"
-           step="0.01">
-  </div>
-
-</div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="fCloseModal('fEditModal')">取消</button>
-      <button class="btn-confirm" onclick="fSaveEdit()">保存</button>
-    </div>
-  </div>
-</div>
-
 <script>
 
 // ════════════════════════════════════
@@ -2663,5 +2594,73 @@ function toggleAssetPrivacy() {
     }
 }
 </script>
+  <!-- 财务新增 Modal -->
+<div class="modal" id="fAddModal" onclick="if(event.target===this)fCloseModal('fAddModal')">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3>新增账户</h3>
+      <button class="modal-close" onclick="fCloseModal('fAddModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>银行</label>
+        <select id="f-add-bank">
+          <option>招商银行</option><option>工商银行</option><option>建设银行</option>
+          <option>农业银行</option><option>上海银行</option><option>其他</option>
+        </select>
+      </div>
+      <div class="form-group"><label>类型</label>
+        <select id="f-add-type" onchange="fToggleCustomFinance()">
+          <option value="活期">活期</option>
+          <option value="customFinance">自定义理财</option>
+          <option value="养老金">养老金</option>
+        </select>
+      </div>
+      <div class="form-group" id="f-custom-finance-group" style="display:none">
+        <label>理财名称</label>
+        <input type="text" id="f-custom-finance-name" placeholder="例如：朝朝宝">
+      </div>
+      <div class="form-group"><label>币种</label>
+        <select id="f-add-currency"><option value="CNY">人民币 CNY</option><option value="USD">美元 USD</option></select>
+      </div>
+      <div class="form-group"><label>金额</label><input type="text" inputmode="decimal" id="f-add-amount" placeholder="0.00">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="fCloseModal('fAddModal')">取消</button>
+      <button class="btn-confirm" onclick="fAddAsset()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- 财务编辑 Modal -->
+<div class="modal" id="fEditModal" onclick="if(event.target===this)fCloseModal('fEditModal')">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <h3 id="f-editTitle">编辑账户</h3>
+      <button class="modal-close" onclick="fCloseModal('fEditModal')">×</button>
+    </div>
+   <div class="modal-body">
+
+  <div class="form-group">
+    <label>账户名称</label>
+    <input type="text"
+           id="f-edit-name"
+           placeholder="请输入账户名称">
+  </div>
+
+  <div class="form-group">
+    <label>金额</label>
+    <input type="text" inputmode="decimal"
+           id="f-edit-amount"
+           placeholder="0.00"
+           step="0.01">
+  </div>
+
+</div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="fCloseModal('fEditModal')">取消</button>
+      <button class="btn-confirm" onclick="fSaveEdit()">保存</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
