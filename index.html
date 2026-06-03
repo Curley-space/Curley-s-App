@@ -368,7 +368,7 @@ body {
   justify-content:center;
   overflow:hidden;
   z-index:1;
-  background: radial-gradient(ellipse at center, #1c1608 0%, var(--card) 72%);
+  background: radial-gradient(ellipse at center, #2a2010 0%, #2a2010 25%, var(--card) 60%);
 }
 .figure-wrap {
   position:relative;
@@ -518,11 +518,11 @@ body {
 .metric-pill .mp-val { font-size:12px; font-weight:600; color:var(--accent); }
 .body-tab-section { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .tags-wrap { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
-.tag { font-size:11px; padding:4px 10px; border-radius:20px; border:0.5px solid var(--accent); color:var(--text); background:var(--accent-light); }
+.tag { font-size:11px; padding:4px 10px; border-radius:20px; border:1px solid rgba(217,182,122,0.4); color:var(--accent); background:rgba(217,182,122,0.08); }
 .analysis-list { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
 .analysis-item {
   font-size:12px; line-height:1.6; color:var(--text); padding:7px 10px;
-  border-left:2.5px solid var(--accent); border-radius:0 8px 8px 0; background:var(--accent-light);
+  border-left:2.5px solid var(--accent); border-radius:0 8px 8px 0; background:#1e1a4a;
 }
 .ratio-item { margin-bottom:10px; }
 .ratio-header { display:flex; justify-content:space-between; font-size:11px; color:var(--text); margin-bottom:4px; }
@@ -1130,7 +1130,7 @@ body {
         </div>
         <div class="chart-card" id="f-pieCard" style="display:none">
           <div class="cc-title">支出分类占比</div>
-          <canvas id="f-pieChart" height="180"></canvas>
+          <canvas id="f-pieChart" style="height:220px;max-height:220px;"></canvas>
         </div>
         <div class="chart-card" id="f-catCard" style="display:none">
           <div class="cc-title">支出分类明细</div>
@@ -1909,7 +1909,8 @@ function fToggleTrend(){
     if(data.length<2){empty.style.display='block';canvas.style.display='none';return;}
     empty.style.display='none';canvas.style.display='block';
     if(fTrendChart)fTrendChart.destroy();
-    fTrendChart=new Chart(canvas,{type:'line',data:{labels:data.map(d=>d.date.slice(5)),datasets:[{data:data.map(d=>fCalcTotal(d)),borderColor:'#d9b67a',borderWidth:2.5,tension:0.35,pointRadius:4,pointBackgroundColor:'#d9b67a',fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+    const vals=data.map(d=>fCalcTotal(d));const minV=Math.min(...vals);const maxV=Math.max(...vals);
+fTrendChart=new Chart(canvas,{type:'line',data:{labels:data.map(d=>d.date.slice(5)),datasets:[{data:vals,borderColor:'#d9b67a',borderWidth:2.5,tension:0.35,pointRadius:4,pointBackgroundColor:'#d9b67a',fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`¥${fFmtFull(ctx.raw)}`,title:ctx=>ctx[0].label}}},scales:{x:{display:false},y:{display:true,position:'right',grid:{display:false},ticks:{font:{size:9},color:'#9988cc',maxTicksLimit:2,callback:v=>{if(v===minV||v===maxV)return(v>=10000?(v/10000).toFixed(1)+'万':'¥'+v);return null;}}}}}});
   }
 }
 function fOpenModal(id){const el=document.getElementById(id);document.body.appendChild(el);el.classList.add('open');document.body.style.overflow='hidden';}
