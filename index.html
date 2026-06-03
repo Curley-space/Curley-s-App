@@ -1915,9 +1915,7 @@ if(this.parentElement.classList.contains('open')){
 
         ${accs.map(a=>`
 
-          <div class="account-card"
-               ontouchstart="fSwipeStart(event)"
-               ontouchmove="fSwipeMove(event,this)">
+          <div class="account-card">
 
             <div class="delete-bg"
                  onclick="fDeleteAsset('${a.id}')">
@@ -1925,8 +1923,9 @@ if(this.parentElement.classList.contains('open')){
             </div>
 
          <div class="account-content"
-onclick="fOpenEditModal('${a.id}','${a.name}',${a.amount})"
-ontouchend="if(!this.closest('.account-card').classList.contains('swiped')){fOpenEditModal('${a.id}','${a.name}',${a.amount});event.preventDefault();}">
+     data-id="${a.id}"
+     data-name="${a.name}"
+     data-amount="${a.amount}">
 
               <div class="account-top">
 
@@ -2152,6 +2151,24 @@ function fDeleteAsset(id){
 function fSwipeStart(e){fStartX=e.touches[0].clientX;}
 function fSwipeMove(e,card){const diff=fStartX-e.touches[0].clientX;if(diff>40)card.classList.add('swiped');if(diff<-20)card.classList.remove('swiped');}
 document.addEventListener('click',e=>{if(!e.target.closest('.account-card'))document.querySelectorAll('.account-card').forEach(c=>c.classList.remove('swiped'));});
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('f-assetGroups').addEventListener('touchstart',e=>{
+    const card=e.target.closest('.account-card');
+    if(card){fStartX=e.touches[0].clientX;}
+  },{passive:true});
+  document.getElementById('f-assetGroups').addEventListener('touchmove',e=>{
+    const card=e.target.closest('.account-card');
+    if(card){const diff=fStartX-e.touches[0].clientX;if(diff>40)card.classList.add('swiped');if(diff<-20)card.classList.remove('swiped');}
+  },{passive:true});
+  document.getElementById('f-assetGroups').addEventListener('touchend',e=>{
+    const content=e.target.closest('.account-content');
+    const card=e.target.closest('.account-card');
+    if(content&&card&&!card.classList.contains('swiped')){
+      const id=content.dataset.id,name=content.dataset.name,amount=content.dataset.amount;
+      if(id)fOpenEditModal(id,name,parseFloat(amount));
+    }
+  });
+});
 
 // CSV解析
 function fParseDate(str){const m=str.match(/(\d+)年(\d+)月(\d+)日/);if(!m)return null;return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;}
