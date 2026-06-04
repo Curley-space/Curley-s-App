@@ -1129,17 +1129,46 @@ body {
           <div class="ie-card expense"><div class="ie-label">支出</div><div class="ie-val" id="f-ie-expense">¥0</div></div>
           <div class="ie-card balance"><div class="ie-label">结余</div><div class="ie-val" id="f-ie-balance">¥0</div></div>
         </div>
-        <div class="chart-card" id="f-pieCard" style="display:none">
-          <div class="cc-title">支出分类占比</div>
-          <canvas id="f-pieChart" style="height:180px;max-height:180px;"></canvas>
+        <!-- 年度汇总卡片 -->
+        <div id="f-annualSummaryCard" style="display:none;background:var(--card);border-radius:16px;padding:16px;margin-bottom:12px;border:0.5px solid var(--border)"></div>
+        <!-- 年度甜甜圈区（全年支出/全年收入标签下显示） -->
+        <div id="f-annualPieSection" style="display:none">
+          <div class="chart-card">
+            <div class="cc-title" id="f-annualPieTitle">年度支出统计</div>
+            <canvas id="f-annualDonutCanvas" style="height:280px;max-height:280px;"></canvas>
+            <div id="f-annualDonutTooltip" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.06);border-radius:10px;font-size:13px;text-align:center;color:var(--accent);"></div>
+          </div>
+          <div class="chart-card">
+            <div class="cc-title" id="f-annualCatTitle">分类明细</div>
+            <div class="category-list" id="f-annualCatList"></div>
+          </div>
         </div>
-        <div class="chart-card" id="f-catCard" style="display:none">
-          <div class="cc-title">支出分类明细</div>
-          <div class="category-list" id="f-categoryList"></div>
+        <!-- 月度内容区（月份标签下显示） -->
+        <div id="f-monthlySection" style="display:none">
+          <div class="chart-card" id="f-monthDonutCard">
+            <div class="cc-title" id="f-monthDonutTitle">本月支出分布</div>
+            <canvas id="f-monthDonutCanvas" style="height:260px;max-height:260px;"></canvas>
+            <div id="f-monthDonutTooltip" style="display:none;margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.06);border-radius:10px;font-size:13px;text-align:center;color:var(--accent);"></div>
+          </div>
+          <div class="chart-card" id="f-catCard">
+            <div class="cc-title">支出分类明细</div>
+            <div class="category-list" id="f-categoryList"></div>
+          </div>
+          <div class="chart-card" id="f-barCard">
+            <div class="cc-title">月度收支对比</div>
+            <canvas id="f-barChart" style="height:180px;max-height:180px;"></canvas>
+          </div>
         </div>
-        <div class="chart-card" id="f-barCard" style="display:none">
-          <div class="cc-title">月度收支对比</div>
-          <canvas id="f-barChart" style="height:160px;max-height:160px;"></canvas>
+        <!-- 全年专属：月份分布柱状图 + 结余表格 -->
+        <div id="f-annualSection" style="display:none">
+          <div class="chart-card">
+            <div class="cc-title">收入 &amp; 支出月份分布</div>
+            <canvas id="f-monthBarChart" style="height:200px;max-height:200px;"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="cc-title">月度收支结余明细</div>
+            <div id="f-annualTable"></div>
+          </div>
         </div>
         <div class="empty-hint" id="f-cashflowEmpty">上传 CSV 文件后显示收支分析</div>
       </div>
@@ -1730,7 +1759,7 @@ function bInit() { bLoadCurrent();bRenderFitFields();bRenderAll(); }
 // ════════════════════════════════════
 const F_ASSET_KEY='asset_records', F_CSV_KEY='expense_records';
 const F_CAT_COLORS={'饮食日常':'#e07b4a','日用服饰':'#6b9bd2','住宿出行':'#7cc4a0','生活娱乐':'#c47cc4','红包转账':'#d4b44a','其他':'#aaaaaa'};
-let fWorkingRecord=null, fCurrentEditId=null, fTrendChart=null, fPieChart=null, fBarChart=null, fCurrentMonth=null, fAllTxs=[], fStartX=0,fOpenedBanks=[];
+let fWorkingRecord=null, fCurrentEditId=null, fTrendChart=null, fBarChart=null, fCurrentMonth=null, fAllTxs=[], fStartX=0, fOpenedBanks=[], fAnnualDonutChart=null, fMonthBarChart=null, fMonthlyDonutChart=null;
 
 function fUid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2);}
 function fToday(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
@@ -2134,50 +2163,340 @@ function fInitCashflow(){
   document.getElementById('f-dataStatus').classList.add('show');
   document.getElementById('f-dsText').textContent=`已加载 ${fAllTxs.length} 条记录`;
   const months=[...new Set(fAllTxs.map(t=>t.month))].sort((a,b)=>a-b);
+  fCurrentMonth=months[months.length-1]; // 默认最新月份
   fRenderMonthTabs(months);
-  fCurrentMonth=months[months.length-1];
+  // 默认显示最新月份（月度视图）
+  document.getElementById('f-annualPieSection').style.display='none';
+  document.getElementById('f-monthlySection').style.display='block';
+  document.getElementById('f-annualSection').style.display='none';
+  document.getElementById('f-ieRow').style.display='grid';
   fRenderCashflow(fCurrentMonth);
-  fRenderBarChart(months);
+  // 滚动月份tab到最右（最新月）
+  setTimeout(()=>{
+    const tabEl=document.getElementById('f-monthTabs');
+    if(tabEl) tabEl.scrollLeft=tabEl.scrollWidth;
+  },80);
 }
 function fShowCashflowEmpty(show){
   document.getElementById('f-cashflowEmpty').style.display=show?'block':'none';
   document.getElementById('f-dataStatus').classList.toggle('show',!show&&fAllTxs.length>0);
   document.getElementById('f-monthTabs').style.display=show?'none':'flex';
   document.getElementById('f-ieRow').style.display=show?'none':'grid';
-  document.getElementById('f-pieCard').style.display=show?'none':'block';
-  document.getElementById('f-catCard').style.display=show?'none':'block';
-  document.getElementById('f-barCard').style.display=show?'none':'block';
+  if(show){
+    document.getElementById('f-annualPieSection').style.display='none';
+    document.getElementById('f-monthlySection').style.display='none';
+    document.getElementById('f-annualSection').style.display='none';
+  }
 }
 function fRenderMonthTabs(months){
-  document.getElementById('f-monthTabs').innerHTML=months.map(m=>
-    `<button class="month-tab ${m===fCurrentMonth?'active':''}" onclick="fSelectMonth(${m},this)">${m}月</button>`
-  ).join('')+`<button class="month-tab" onclick="fSelectMonth('all',this)">全年</button>`;
+  // 全年支出 | 全年收入 放在最前，然后各月份
+  const annualBtns = `<button class="month-tab ${fCurrentMonth==='annualExp'?'active':''}" onclick="fSelectMonth('annualExp',this)">全年支出</button><button class="month-tab ${fCurrentMonth==='annualInc'?'active':''}" onclick="fSelectMonth('annualInc',this)">全年收入</button>`;
+  const monthBtns = months.map(m=>`<button class="month-tab ${m===fCurrentMonth?'active':''}" onclick="fSelectMonth(${m},this)">${m}月</button>`).join('');
+  document.getElementById('f-monthTabs').innerHTML = annualBtns + monthBtns;
 }
-function fSelectMonth(m,btn){
-  fCurrentMonth=m;
+function fSelectMonth(m, btn){
+  fCurrentMonth = m;
   document.querySelectorAll('.month-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); fRenderCashflow(m);
+  btn.classList.add('active');
+  const isAnnual = (m==='annualExp'||m==='annualInc');
+  document.getElementById('f-annualPieSection').style.display = isAnnual?'block':'none';
+  document.getElementById('f-monthlySection').style.display = isAnnual?'none':'block';
+  document.getElementById('f-annualSection').style.display = isAnnual?'block':'none';
+  document.getElementById('f-ieRow').style.display = isAnnual?'none':'grid';
+  // 年度丰富卡片
+  const annualCard = document.getElementById('f-annualSummaryCard');
+  if(isAnnual){
+    if(annualCard) annualCard.style.display='block';
+    fRenderAnnualSummaryCard(m==='annualExp'?'exp':'inc');
+    if(m==='annualExp') fRenderAnnualDonut('exp');
+    else fRenderAnnualDonut('inc');
+    fRenderAnnualExtras();
+  } else {
+    if(annualCard) annualCard.style.display='none';
+    fRenderCashflow(m);
+  }
+}
+function fRenderAnnualSummaryCard(type){
+  const card = document.getElementById('f-annualSummaryCard');
+  if(!card) return;
+  const allTxs = fAllTxs;
+  const months = [...new Set(allTxs.map(t=>t.month))].sort((a,b)=>a-b);
+  const monthCount = months.length || 1;
+  const isExp = type==='exp';
+  const filtered = allTxs.filter(t=>t.type===(isExp?'支出':'收入'));
+  const totalAmt = filtered.reduce((s,t)=>s+t.amount,0);
+  const monthly = totalAmt/monthCount;
+  // 找最大分类
+  const catMap={};
+  filtered.forEach(t=>{const c=t.category||'其他';catMap[c]=(catMap[c]||0)+t.amount;});
+  const topCat = Object.entries(catMap).sort((a,b)=>b[1]-a[1])[0];
+  const topCatName = topCat?topCat[0]:'—';
+  const topCatAmt = topCat?topCat[1]:0;
+  const topCatPct = totalAmt>0?(topCatAmt/totalAmt*100).toFixed(1):0;
+  const colorMap = isExp?F_CAT_COLORS:INC_COLORS;
+  const topColor = colorMap[topCatName]||colorMap['其他']||'#aaa';
+  const mainColor = isExp?'#e07b6a':'#6db88a';
+  const label = isExp?'全年支出':'全年收入';
+  card.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:11px;color:var(--muted)">${label}</span>
+    </div>
+    <div style="font-size:30px;font-weight:700;color:${mainColor};letter-spacing:-1px;margin-bottom:12px">¥${fFmtFull(totalAmt)}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="background:var(--bg);border-radius:10px;padding:10px 12px;border:0.5px solid var(--border)">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">月均${isExp?'支出':'收入'}</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">¥${fFmt(monthly)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">共 ${monthCount} 个月</div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:10px 12px;border:0.5px solid var(--border)">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${isExp?'最大支出类':'主要来源'}</div>
+        <div style="font-size:13px;font-weight:700;color:${topColor}">${topCatName}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">¥${fFmt(topCatAmt)} · ${topCatPct}%</div>
+      </div>
+    </div>
+  `;
 }
 function fRenderCashflow(month){
-  const txs=month==='all'?fAllTxs:fAllTxs.filter(t=>t.month===month);
-  const income=txs.filter(t=>t.type==='收入').reduce((s,t)=>s+t.amount,0);
-  const expense=txs.filter(t=>t.type==='支出').reduce((s,t)=>s+t.amount,0);
-  const balance=income-expense;
-  document.getElementById('f-ie-income').textContent='¥'+fFmt(income);
-  document.getElementById('f-ie-expense').textContent='¥'+fFmt(expense);
-  document.getElementById('f-ie-balance').textContent=(balance>=0?'':'−')+'¥'+fFmt(Math.abs(balance));
-  document.getElementById('f-ie-balance').style.color=balance>=0?'var(--green)':'var(--err)';
-  const expTxs=txs.filter(t=>t.type==='支出');
-  const catMap={};expTxs.forEach(t=>{const cat=t.category||'其他';catMap[cat]=(catMap[cat]||0)+t.amount;});
-  const cats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
-  const total=cats.reduce((s,[,v])=>s+v,0);
-fRenderPieChart(cats,total);
-  const monthTxs=month==='all'?fAllTxs:fAllTxs.filter(t=>t.month===month);
-  document.getElementById('f-categoryList').innerHTML=cats.map(([cat,amt])=>{
-    const color=F_CAT_COLORS[cat]||F_CAT_COLORS['其他'];
-    const pct=total>0?(amt/total*100).toFixed(1):0;
-    const topTxs=monthTxs.filter(t=>t.type==='支出'&&t.category===cat).sort((a,b)=>b.amount-a.amount).slice(0,5);
-    const detailRows=topTxs.map(t=>`<div class="cat-detail-row"><span class="cdr-date">${t.date.slice(5)}</span><span class="cdr-note">${t.note||'—'}</span><span class="cdr-amt">¥${fFmtFull(t.amount)}</span></div>`).join('');
+  const txs = fAllTxs.filter(t=>t.month===month);
+  const income  = txs.filter(t=>t.type==='收入').reduce((s,t)=>s+t.amount,0);
+  const expense = txs.filter(t=>t.type==='支出').reduce((s,t)=>s+t.amount,0);
+  const balance = income - expense;
+  document.getElementById('f-ie-income').textContent  = '¥'+fFmt(income);
+  document.getElementById('f-ie-expense').textContent = '¥'+fFmt(expense);
+  document.getElementById('f-ie-balance').textContent = (balance>=0?'':'−')+'¥'+fFmt(Math.abs(balance));
+  document.getElementById('f-ie-balance').style.color = balance>=0?'var(--green)':'var(--err)';
+  // 支出分类数据
+  const expTxs = txs.filter(t=>t.type==='支出');
+  const catMap = {};
+  expTxs.forEach(t=>{const c=t.category||'其他';catMap[c]=(catMap[c]||0)+t.amount;});
+  const cats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+  const total = cats.reduce((s,[,v])=>s+v,0);
+  // 月度甜甜圈（先销毁旧实例）
+  if(fMonthlyDonutChart){ fMonthlyDonutChart.destroy(); fMonthlyDonutChart=null; }
+  const donutTitle = document.getElementById('f-monthDonutTitle');
+  if(donutTitle) donutTitle.textContent = month+'月支出分布';
+  const donutTooltip = document.getElementById('f-monthDonutTooltip');
+  if(donutTooltip) donutTooltip.style.display='none';
+  if(cats.length>0){
+    fMonthlyDonutChart = fMakeDonut('f-monthDonutCanvas','f-monthDonutTooltip', cats, total, month+'月支出', F_CAT_COLORS);
+    const card = document.getElementById('f-monthDonutCard');
+    if(card) card.style.display='block';
+  } else {
+    const card = document.getElementById('f-monthDonutCard');
+    if(card) card.style.display='none';
+  }
+  // 支出分类明细列表
+  document.getElementById('f-categoryList').innerHTML = cats.map(([cat,amt])=>{
+    const color = F_CAT_COLORS[cat]||F_CAT_COLORS['其他'];
+    const pct = total>0?(amt/total*100).toFixed(1):0;
+    const topTxs = txs.filter(t=>t.type==='支出'&&t.category===cat).sort((a,b)=>b.amount-a.amount).slice(0,5);
+    const detailRows = topTxs.map(t=>`<div class="cat-detail-row"><span class="cdr-date">${t.date.slice(5)}</span><span class="cdr-note">${t.note||'—'}</span><span class="cdr-amt">¥${fFmtFull(t.amount)}</span></div>`).join('');
+    return `<div class="category-item-wrap">
+      <div class="category-item" onclick="fToggleCatDetail(this)">
+        <span class="cat-dot" style="background:${color}"></span>
+        <span class="cat-name">${cat}</span>
+        <div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${color}"></div></div>
+        <span class="cat-amount">¥${fFmt(amt)}</span>
+        <span class="cat-pct">${pct}%</span>
+        <span class="cat-arrow">▶</span>
+      </div>
+      <div class="cat-detail" style="display:none">
+        <div class="cat-detail-header">金额最大的 ${topTxs.length} 笔</div>
+        ${detailRows}
+      </div>
+    </div>`;
+  }).join('');
+  // 月度收支对比柱状图
+  const allMonths = [...new Set(fAllTxs.map(t=>t.month))].sort((a,b)=>a-b);
+  fRenderBarChart(allMonths);
+}
+function fToggleCatDetail(el){
+  const wrap=el.parentElement;const detail=wrap.querySelector('.cat-detail');const arrow=el.querySelector('.cat-arrow');
+  const open=detail.style.display==='block';
+  detail.style.display=open?'none':'block';
+  arrow.textContent=open?'▶':'▼';arrow.style.color=open?'var(--muted)':'var(--accent)';
+}
+
+// ── 通用甜甜圈构造器（智能内外标签）──
+function fMakeDonut(canvasId, tooltipId, cats, total, centerLabel, colorMap){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return null;
+  if(canvas._chartInst){ canvas._chartInst.destroy(); }
+
+  const centerPlugin = {id:'center_'+canvasId, afterDraw(chart){
+    const {ctx, chartArea:{top,bottom,left,right}} = chart;
+    const cx=(left+right)/2, cy=(top+bottom)/2;
+    ctx.save();
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(200,185,154,0.55)'; ctx.font='11px sans-serif';
+    ctx.fillText(centerLabel, cx, cy-12);
+    ctx.fillStyle='#d9b67a'; ctx.font='bold 15px sans-serif';
+    ctx.fillText('¥'+fFmt(total), cx, cy+9);
+    ctx.restore();
+  }};
+
+  // 智能内外标签插件：大弧段写内部，小弧段引导线外溢
+  const smartLabelPlugin = {id:'smartLabel_'+canvasId, afterDatasetsDraw(chart){
+    const {ctx, chartArea:{top,bottom,left,right}} = chart;
+    const cx = (left+right)/2, cy = (top+bottom)/2;
+    const meta = chart.getDatasetMeta(0);
+    ctx.save();
+
+    // 第一遍：收集所有外部标签的位置，用于碰撞检测
+    const outerLabels = [];
+    chart.data.datasets[0].data.forEach((val, i)=>{
+      const arc = meta.data[i];
+      const pct = total>0?(val/total*100):0;
+      if(pct < 3) return;
+      const midAngle = (arc.startAngle + arc.endAngle) / 2;
+      const arcSpan = arc.endAngle - arc.startAngle;
+      const outerR = arc.outerRadius;
+      const innerR = arc.innerRadius;
+      const midR = (outerR + innerR) / 2;
+      const color = colorMap[chart.data.labels[i]] || colorMap['其他'];
+      const label = chart.data.labels[i];
+      const pctText = pct.toFixed(1)+'%';
+
+      // 判断弧段是否足够放内部标签（弧长 > 约60px，占比 > 12%）
+      const arcLen = arcSpan * outerR;
+      const canFitInside = pct >= 12 && arcLen >= 55;
+
+      if(canFitInside){
+        // 写在弧段中间
+        const tx = cx + Math.cos(midAngle) * midR;
+        const ty = cy + Math.sin(midAngle) * midR;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        // 名称
+        ctx.fillStyle='#fff'; ctx.font='bold 10px sans-serif';
+        ctx.fillText(label, tx, ty - 7);
+        // 百分比
+        ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='9px sans-serif';
+        ctx.fillText(pctText, tx, ty + 6);
+      } else {
+        // 外部引导线，稍微短一点
+        const isRight = Math.cos(midAngle) >= 0;
+        const x1 = cx + Math.cos(midAngle) * (outerR + 3);
+        const y1 = cy + Math.sin(midAngle) * (outerR + 3);
+        const x2 = cx + Math.cos(midAngle) * (outerR + 14);
+        const y2 = cy + Math.sin(midAngle) * (outerR + 14);
+        const x3 = x2 + (isRight ? 5 : -5);
+        outerLabels.push({x1,y1,x2,y2,x3,y2e:y2,isRight,color,label,pctText,i});
+      }
+    });
+
+    // 第二遍：画外部引导线标签（简单垂直错开防遮挡）
+    // 按y坐标排序，左右分开处理
+    const leftLabels = outerLabels.filter(l=>!l.isRight).sort((a,b)=>a.y2e-b.y2e);
+    const rightLabels = outerLabels.filter(l=>l.isRight).sort((a,b)=>a.y2e-b.y2e);
+    const MIN_GAP = 22; // 最小垂直间距px
+
+    function adjustAndDraw(labels, isRight){
+      // 简单推开：如果相邻两个y距离太近，把下面的往下推
+      for(let k=1;k<labels.length;k++){
+        const prev = labels[k-1], cur = labels[k];
+        if(cur.y2e - prev.y2e < MIN_GAP){
+          cur.y2e = prev.y2e + MIN_GAP;
+        }
+      }
+      labels.forEach(l=>{
+        // 引导线
+        ctx.beginPath();
+        ctx.moveTo(l.x1, l.y1);
+        ctx.lineTo(l.x2, l.y2);
+        ctx.lineTo(l.x3, l.y2e);
+        ctx.strokeStyle = l.color;
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.65;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        // 文字
+        ctx.textAlign = isRight ? 'left' : 'right';
+        ctx.textBaseline = 'middle';
+        const tx = l.x3 + (isRight?2:-2);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif';
+        ctx.fillText(l.label, tx, l.y2e - 6);
+        ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '9px sans-serif';
+        ctx.fillText(l.pctText, tx, l.y2e + 6);
+      });
+    }
+    adjustAndDraw(leftLabels, false);
+    adjustAndDraw(rightLabels, true);
+
+    ctx.restore();
+  }};
+
+  const chart = new Chart(canvas, {
+    type: 'doughnut',
+    data:{
+      labels: cats.map(([c])=>c),
+      datasets:[{
+        data: cats.map(([,v])=>v),
+        backgroundColor: cats.map(([c])=>colorMap[c]||colorMap['其他']),
+        borderWidth: 2, borderColor: '#1a1640',
+        hoverOffset: 6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      cutout: '52%',
+      layout:{ padding: 36 },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          enabled: false,
+          external(context){
+            const el = document.getElementById(tooltipId);
+            if(!el) return;
+            const {tooltip} = context;
+            if(tooltip.opacity===0){el.style.display='none';return;}
+            const i = tooltip.dataPoints[0].dataIndex;
+            const cat = cats[i][0], amt = cats[i][1];
+            const pct = total>0?(amt/total*100).toFixed(1):0;
+            el.style.display='block';
+            el.innerHTML=`<span style="color:${colorMap[cat]||colorMap['其他']};font-weight:700">${cat}</span>　¥${fFmtFull(amt)}　<span style="opacity:0.7">${pct}%</span>`;
+          }
+        }
+      }
+    },
+    plugins:[centerPlugin, smartLabelPlugin]
+  });
+  canvas._chartInst = chart;
+  return chart;
+}
+
+// 年度甜甜圈（支出或收入）
+const INC_COLORS={'工资':'#5b9cf6','红包':'#f5a623','奖金':'#7ed321','理财收益':'#a78bfa','其他收入':'#6db88a','其他':'#aaaaaa'};
+function fRenderAnnualDonut(type){
+  const allTxs = fAllTxs;
+  let cats, total, colorMap;
+  if(type==='exp'){
+    document.getElementById('f-annualPieTitle').textContent='年度支出统计';
+    document.getElementById('f-annualCatTitle').textContent='支出分类明细';
+    const catMap={};
+    allTxs.filter(t=>t.type==='支出').forEach(t=>{const c=t.category||'其他';catMap[c]=(catMap[c]||0)+t.amount;});
+    cats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+    total = cats.reduce((s,[,v])=>s+v,0);
+    colorMap = F_CAT_COLORS;
+    if(fAnnualDonutChart) fAnnualDonutChart.destroy();
+    fAnnualDonutChart = fMakeDonut('f-annualDonutCanvas','f-annualDonutTooltip', cats, total, '年度支出', colorMap);
+  } else {
+    document.getElementById('f-annualPieTitle').textContent='年度收入统计';
+    document.getElementById('f-annualCatTitle').textContent='收入分类明细';
+    const catMap={};
+    allTxs.filter(t=>t.type==='收入').forEach(t=>{const c=t.category||'其他';catMap[c]=(catMap[c]||0)+t.amount;});
+    cats = Object.entries(catMap).sort((a,b)=>b[1]-a[1]);
+    total = cats.reduce((s,[,v])=>s+v,0);
+    colorMap = INC_COLORS;
+    if(fAnnualDonutChart) fAnnualDonutChart.destroy();
+    fAnnualDonutChart = fMakeDonut('f-annualDonutCanvas','f-annualDonutTooltip', cats, total, '年度收入', colorMap);
+  }
+  // 渲染年度分类明细（可点击展开交易详情）
+  const txType = type==='exp'?'支出':'收入';
+  document.getElementById('f-annualCatList').innerHTML = cats.map(([cat,amt])=>{
+    const color = colorMap[cat]||colorMap['其他']||'#aaa';
+    const pct = total>0?(amt/total*100).toFixed(1):0;
+    const topTxs = allTxs.filter(t=>t.type===txType&&t.category===cat).sort((a,b)=>b.amount-a.amount).slice(0,5);
+    const detailRows = topTxs.map(t=>`<div class="cat-detail-row"><span class="cdr-date">${t.date.slice(5)}</span><span class="cdr-note">${t.note||'—'}</span><span class="cdr-amt">¥${fFmtFull(t.amount)}</span></div>`).join('');
     return `<div class="category-item-wrap">
       <div class="category-item" onclick="fToggleCatDetail(this)">
         <span class="cat-dot" style="background:${color}"></span>
@@ -2194,24 +2513,116 @@ fRenderPieChart(cats,total);
     </div>`;
   }).join('');
 }
-function fToggleCatDetail(el){
-  const wrap=el.parentElement;const detail=wrap.querySelector('.cat-detail');const arrow=el.querySelector('.cat-arrow');
-  const open=detail.style.display==='block';
-  detail.style.display=open?'none':'block';
-  arrow.textContent=open?'▶':'▼';arrow.style.color=open?'var(--muted)':'var(--accent)';
-}
-function fRenderPieChart(cats,total){
-  const canvas=document.getElementById('f-pieChart');
-  if(fPieChart)fPieChart.destroy();if(!cats.length) return;
-  const centerTextPlugin={id:'centerText',afterDraw(chart){const{ctx,chartArea:{top,bottom,left,right}}=chart;const cx=(left+right)/2,cy=(top+bottom)/2;ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#9988cc';ctx.font='10px sans-serif';ctx.fillText('总支出',cx,cy-10);ctx.fillStyle='#d9b67a';ctx.font='bold 14px sans-serif';ctx.fillText('¥'+fFmt(total),cx,cy+8);ctx.restore();}};
-  fPieChart=new Chart(canvas,{type:'doughnut',data:{labels:cats.map(([c])=>c),datasets:[{data:cats.map(([,v])=>v),backgroundColor:cats.map(([c])=>F_CAT_COLORS[c]||F_CAT_COLORS['其他']),borderWidth:2,borderColor:'#0d1b3e'}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:8,color:'#c8b99a'}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ¥${fFmt(ctx.raw)}`}}}},plugins:[centerTextPlugin]});
-}
+
+// 月度柱状图（带顶部数字）
 function fRenderBarChart(months){
-  const canvas=document.getElementById('f-barChart');
-  if(fBarChart)fBarChart.destroy();if(months.length<2) return;
-  const incomes=months.map(m=>fAllTxs.filter(t=>t.month===m&&t.type==='收入').reduce((s,t)=>s+t.amount,0));
-  const barLabelPlugin={id:'barLabel',afterDatasetsDraw(chart){const{ctx}=chart;chart.data.datasets.forEach((ds,i)=>{const meta=chart.getDatasetMeta(i);meta.data.forEach((bar,j)=>{const v=ds.data[j];if(!v)return;const label=v>=10000?(v/10000).toFixed(1)+'万':'¥'+fFmt(v);ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillStyle='#c8b99a';ctx.font='9px sans-serif';ctx.fillText(label,bar.x,bar.y-2);ctx.restore();});});}}; 
-  fBarChart=new Chart(canvas,{type:'bar',data:{labels:months.map(m=>m+'月'),datasets:[{label:'收入',data:incomes,backgroundColor:'rgba(100,200,130,0.75)',borderRadius:4},{label:'支出',data:expenses,backgroundColor:'rgba(220,90,90,0.75)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,color:'#c8b99a'}}}  ,scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#8a7a68'}},y:{display:true,grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9},color:'#8a7a68',callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v}}}},plugins:[barLabelPlugin]});
+  const canvas = document.getElementById('f-barChart');
+  if(!canvas) return;
+  if(fBarChart) fBarChart.destroy();
+  if(months.length < 1) return;
+  const incomes  = months.map(m=>fAllTxs.filter(t=>t.month===m&&t.type==='收入').reduce((s,t)=>s+t.amount,0));
+  const expenses = months.map(m=>fAllTxs.filter(t=>t.month===m&&t.type==='支出').reduce((s,t)=>s+t.amount,0));
+  // 柱顶数字插件
+  const topLabelPlugin = {id:'topLabel', afterDatasetsDraw(chart){
+    const {ctx} = chart;
+    chart.data.datasets.forEach((ds, di)=>{
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((bar, j)=>{
+        const v = ds.data[j];
+        if(!v) return;
+        const label = v>=10000?(v/10000).toFixed(1)+'万':'¥'+Math.round(v/1000)+'k';
+        ctx.save();
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillStyle='#c8b99a'; ctx.font='bold 9px sans-serif';
+        ctx.fillText(label, bar.x, bar.y-2);
+        ctx.restore();
+      });
+    });
+  }};
+  fBarChart = new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels: months.map(m=>m+'月'),
+      datasets:[
+        {label:'收入', data:incomes, backgroundColor:'rgba(109,184,138,0.75)', borderRadius:4, borderSkipped:false},
+        {label:'支出', data:expenses, backgroundColor:'rgba(224,123,106,0.75)', borderRadius:4, borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      layout:{ padding:{ top:18 } },
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},boxWidth:12,color:'#c8b99a'}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ¥${fFmtFull(ctx.raw)}`}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},color:'#8a7a68'}},
+        y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9},color:'#8a7a68',callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v}}
+      }
+    },
+    plugins:[topLabelPlugin]
+  });
+}
+
+// 全年月份柱状图 + 结余表格
+function fRenderAnnualExtras(){
+  const allTxs = fAllTxs;
+  const months = [...new Set(allTxs.map(t=>t.month))].sort((a,b)=>a-b);
+  const mIncomes  = months.map(m=>allTxs.filter(t=>t.month===m&&t.type==='收入').reduce((s,t)=>s+t.amount,0));
+  const mExpenses = months.map(m=>allTxs.filter(t=>t.month===m&&t.type==='支出').reduce((s,t)=>s+t.amount,0));
+  const barCanvas = document.getElementById('f-monthBarChart');
+  if(fMonthBarChart) fMonthBarChart.destroy();
+  const topLabelPlugin2 = {id:'topLabel2', afterDatasetsDraw(chart){
+    const {ctx} = chart;
+    chart.data.datasets.forEach((ds, di)=>{
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((bar, j)=>{
+        const v = ds.data[j];
+        if(!v) return;
+        const label = v>=10000?(v/10000).toFixed(1)+'万':'¥'+Math.round(v/1000)+'k';
+        ctx.save();
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillStyle='#c8b99a'; ctx.font='bold 9px sans-serif';
+        ctx.fillText(label, bar.x, bar.y-2);
+        ctx.restore();
+      });
+    });
+  }};
+  fMonthBarChart = new Chart(barCanvas,{
+    type:'bar',
+    data:{
+      labels: months.map(m=>m+'月'),
+      datasets:[
+        {label:'收入', data:mIncomes, backgroundColor:'rgba(109,184,138,0.75)', borderRadius:4, borderSkipped:false},
+        {label:'支出', data:mExpenses, backgroundColor:'rgba(224,123,106,0.75)', borderRadius:4, borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      layout:{ padding:{ top:18 } },
+      plugins:{
+        legend:{position:'top',labels:{font:{size:11},boxWidth:12,color:'#c8b99a'}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ¥${fFmtFull(ctx.raw)}`}}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},color:'#8a7a68'}},
+        y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9},color:'#8a7a68',callback:v=>v>=10000?(v/10000).toFixed(1)+'万':v}}
+      }
+    },
+    plugins:[topLabelPlugin2]
+  });
+  // 月度结余表格
+  const rows = months.map(m=>{
+    const inc = allTxs.filter(t=>t.month===m&&t.type==='收入').reduce((s,t)=>s+t.amount,0);
+    const exp = allTxs.filter(t=>t.month===m&&t.type==='支出').reduce((s,t)=>s+t.amount,0);
+    const bal = inc-exp;
+    const bc = bal>=0?'#6db88a':'#e07b6a';
+    return `<tr><td style="padding:7px 6px;color:var(--muted);font-size:12px">${m}月</td><td style="padding:7px 6px;text-align:right;color:#6db88a;font-size:12px">¥${fFmt(inc)}</td><td style="padding:7px 6px;text-align:right;color:#e07b6a;font-size:12px">¥${fFmt(exp)}</td><td style="padding:7px 6px;text-align:right;color:${bc};font-size:12px;font-weight:600">${bal>=0?'+':''}¥${fFmt(Math.abs(bal))}</td></tr>`;
+  }).join('');
+  const ti=allTxs.filter(t=>t.type==='收入').reduce((s,t)=>s+t.amount,0);
+  const te=allTxs.filter(t=>t.type==='支出').reduce((s,t)=>s+t.amount,0);
+  const tb=ti-te;
+  document.getElementById('f-annualTable').innerHTML=`<table style="width:100%;border-collapse:collapse;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1)"><th style="padding:6px;text-align:left;font-size:11px;color:var(--muted);font-weight:500">月份</th><th style="padding:6px;text-align:right;font-size:11px;color:#6db88a;font-weight:500">收入</th><th style="padding:6px;text-align:right;font-size:11px;color:#e07b6a;font-weight:500">支出</th><th style="padding:6px;text-align:right;font-size:11px;color:var(--accent);font-weight:500">结余</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="border-top:1px solid rgba(255,255,255,0.15)"><td style="padding:8px 6px;font-size:12px;font-weight:700;color:var(--accent)">全年</td><td style="padding:8px 6px;text-align:right;font-size:12px;font-weight:700;color:#6db88a">¥${fFmt(ti)}</td><td style="padding:8px 6px;text-align:right;font-size:12px;font-weight:700;color:#e07b6a">¥${fFmt(te)}</td><td style="padding:8px 6px;text-align:right;font-size:12px;font-weight:700;color:${tb>=0?'#6db88a':'#e07b6a'}">${tb>=0?'+':''}¥${fFmt(Math.abs(tb))}</td></tr></tfoot></table>`;
 }
 
 // ════════════════════════════════════
