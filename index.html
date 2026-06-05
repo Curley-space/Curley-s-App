@@ -1092,11 +1092,11 @@ body {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <span style="font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.4);">📊 数据源配置</span>
               <button type="button" onclick="toggleUploadZone()" id="toggleZoneBtn" style="background: none; border: none; color: #deb887; font-size: 13px; cursor: pointer; padding: 2px 6px;">
-                ▲ 收起面板
+                ▼ 展开面板
               </button>
             </div>
 
-            <div id="uploadContainer" style="transition: all 0.3s ease; overflow: hidden; max-height: 150px; opacity: 1;">
+            <div id="uploadContainer" style="transition: all 0.3s ease; overflow: hidden; display: none;">
               <div style="display: flex; gap: 10px; width: 100%;">
                 
                 <div class="upload-zone" onclick="document.getElementById('f-csvInput').click()" style="flex: 1; padding: 12px 5px; min-height: auto; border-radius: 12px; margin-bottom: 0; text-align: center; cursor: pointer;">
@@ -1774,7 +1774,10 @@ function fSaveAssets(){
   localStorage.setItem(F_ASSET_KEY,JSON.stringify(data));
 }
 function fCalcVal(acc){return acc.currency==='USD'?acc.amount*fWorkingRecord.usd_rate:acc.amount;}
-function fCalcTotal(record){return record.accounts.reduce((s,a)=>s+(a.currency==='USD'?a.amount*record.usd_rate:a.amount),0);}
+// 总资产不含养老金（养老金近20年不可用，单独展示即可）
+function fCalcTotal(record){return record.accounts.reduce((s,a)=>a.type==='养老金'?s:s+(a.currency==='USD'?a.amount*record.usd_rate:a.amount),0);}
+// 含养老金的全量总额（仅内部统计用）
+function fCalcTotalAll(record){return record.accounts.reduce((s,a)=>s+(a.currency==='USD'?a.amount*record.usd_rate:a.amount),0);}
 function fInitAssets(){
   const raw=localStorage.getItem(F_ASSET_KEY);
   if(raw){const data=JSON.parse(raw);fWorkingRecord=data[data.length-1];if(!fWorkingRecord.usd_rate)fWorkingRecord.usd_rate=7.25;return;}
@@ -1950,108 +1953,40 @@ function fOpenAddModal(){
   document.getElementById('f-add-type').value='活期';
   document.getElementById('f-add-currency').value='CNY';
   document.getElementById('f-add-amount').value='';
-  document.getElementById('f-custom-finance-name').value='';
-  fToggleCustomFinance();
   fOpenModal('fAddModal');
 }
 
-function fToggleCustomFinance() {
-  const typeSelect = document.getElementById('f-add-type');
-  const type = typeSelect.value;
-  const group = document.getElementById('f-custom-finance-group');
-  const input = document.getElementById('f-custom-finance-name');
-  
-  if (type === 'customFinance') {
-    let customName = "";
-    let isDuplicate = true;
-    
-    // 1. 获取当前系统里所有历史账户的“扁平化名字列表”
-    let existingNames = [];
-    try {
-      const saved = localStorage.getItem('asset_records');
-      if (saved) {
-        const parsedHistory = JSON.parse(saved);
-        if (Array.isArray(parsedHistory)) {
-          // 钻进每一天的历史数据里，把里面所有 accounts 的名字提取出来
-          parsedHistory.forEach(dayRecord => {
-            if (dayRecord && dayRecord.accounts && Array.isArray(dayRecord.accounts)) {
-              dayRecord.accounts.forEach(acc => {
-                if (acc.name) existingNames.push(acc.name.trim());
-              });
-            }
-          });
-        }
-      }
-    } catch(e) {
-      console.error("读取或解析资产记录失败", e);
-    }
-
-    // 2. 循环判断：如果重名，就一直强制弹窗提示更换
-    while (isDuplicate) {
-      customName = prompt("请输入自定义理财的名称：", customName);
-      
-      // 如果用户点击了“取消”
-      if (customName === null) {
-        alert("已取消选择自定义理财");
-        typeSelect.value = 'card'; 
-        group.style.display = 'none';
-        if (input) input.value = '';
-        return; 
-      }
-      
-      customName = customName.trim();
-      
-      // 校验非空
-      if (customName === "") {
-        alert("理财名称不能为空，请重新输入");
-        continue;
-      }
-      
-      // 核心校验：直接在清洗出来的名字池里比对
-      const hasSameName = existingNames.includes(customName);
-      
-      if (hasSameName) {
-        alert(`❌ 名称「${customName}」已存在，请换一个名字哦！`);
-      } else {
-        isDuplicate = false; // 名字唯一，允许跳出循环
-      }
-    }
-    
-    // 3. 校验通过，填入表单并显示
-    group.style.display = 'block';
-    input.value = customName;
-    
-  } else {
-    group.style.display = 'none';
-    if (input) input.value = '';
-  }
-}
 function fAddAsset(){
   const bank=document.getElementById('f-add-bank').value;
   const type=document.getElementById('f-add-type').value;
   const currency=document.getElementById('f-add-currency').value;
   const amount=parseFloat(document.getElementById('f-add-amount').value)||0;
-  let name='',finalType=type;
 
-  if(type==='活期'){name=bank+'活期';}
-  else if(type==='养老金'){name=bank+'养老金';}
-  else{
-    name=document.getElementById('f-custom-finance-name').value.trim();
-    finalType='理财';
-    if(!name){alert('请填写理财名称');return;}
+  // 养老金全局唯一；其他账户按银行+类型+币种三合一唯一
+  const exists = type==='养老金'
+    ? fWorkingRecord.accounts.some(a=>a.type==='养老金')
+    : fWorkingRecord.accounts.some(a=>a.bank===bank && a.type===type && a.currency===currency);
+  if(exists){
+    alert(type==='养老金' ? '养老金账户已存在' : `${bank}·${type}·${currency} 已存在，请直接编辑该账户`);
+    return;
   }
 
-  const exists=fWorkingRecord.accounts.some(a=>a.name===name);
-  if(exists){alert('账户名称已存在');return;}
+  // name字段：养老金直接叫"养老金"，其他用"类型(币种)"，CNY时省略币种
+  const name = type==='养老金' ? '养老金'
+    : currency==='CNY' ? type : `${type}(${currency})`;
 
-  fWorkingRecord.accounts.push({id:fUid(),bank,name,type:finalType,currency,amount});
+  fWorkingRecord.accounts.push({id:fUid(),bank,name,type,currency,amount});
   fSaveAssets();fRenderAssets();fCloseModal('fAddModal');
 }
 function fOpenEditModal(id,name,amount){
   fCurrentEditId=id;
+  const acc=fWorkingRecord.accounts.find(a=>a.id===id);
+  const type=acc?acc.type:'活期';
+  const currency=acc?acc.currency:'CNY';
 
-  document.getElementById('f-editTitle').textContent=name;
-  document.getElementById('f-edit-name').value=name;
+  document.getElementById('f-editTitle').textContent=`编辑·${acc?acc.bank:'账户'}`;
+  document.getElementById('f-edit-type').value=type;
+  document.getElementById('f-edit-currency').value=currency;
   document.getElementById('f-edit-amount').value=amount;
 
   fOpenModal('fEditModal');
@@ -2063,29 +1998,35 @@ function fOpenEditModal(id,name,amount){
 
 function fSaveEdit(){
 
-  const name=document.getElementById('f-edit-name').value.trim();
+  if(!fCurrentEditId){alert('操作异常，请重新点击账户编辑');return;}
 
-  const amount=parseFloat(
-    document.getElementById('f-edit-amount').value
-  )||0;
+  const newType=document.getElementById('f-edit-type').value;
+  const newCurrency=document.getElementById('f-edit-currency').value;
+  const amount=parseFloat(document.getElementById('f-edit-amount').value)||0;
 
-  const duplicated=fWorkingRecord.accounts.some(
-    a=>a.id!==fCurrentEditId && a.name===name
-  );
+  const acc=fWorkingRecord.accounts.find(a=>a.id===fCurrentEditId);
+  if(!acc) return;
 
-  if(duplicated){
-    alert('账户名称已存在');
-    return;
+  // 养老金全局唯一检查（改成养老金时）
+  if(newType==='养老金' && acc.type!=='养老金'){
+    const exists=fWorkingRecord.accounts.some(a=>a.type==='养老金' && a.id!==fCurrentEditId);
+    if(exists){alert('养老金账户已存在');return;}
   }
 
-  const acc=fWorkingRecord.accounts.find(
-    a=>a.id===fCurrentEditId
-  );
-
-  if(acc){
-    acc.name=name;
-    acc.amount=amount;
+  // 非养老金：同银行+类型+币种唯一检查
+  if(newType!=='养老金'){
+    const conflict=fWorkingRecord.accounts.some(a=>
+      a.id!==fCurrentEditId && a.bank===acc.bank && a.type===newType && a.currency===newCurrency
+    );
+    if(conflict){alert(`${acc.bank}·${newType}·${newCurrency} 已存在`);return;}
   }
+
+  // 更新name字段
+  acc.type=newType;
+  acc.currency=newCurrency;
+  acc.amount=amount;
+  acc.name = newType==='养老金' ? '养老金'
+    : newCurrency==='CNY' ? newType : `${newType}(${newCurrency})`;
 
   fSaveAssets();
   fRenderAssets();
@@ -2885,9 +2826,12 @@ function syncShortcutBill(event) {
                     const item = JSON.parse(line);
                     
                     // 核心缝合：把你快捷指令里吐出来的完美格式，精准装进网页数据库
+                    const parsedDate = item.date || '';
+                    const monthNum = parseInt((parsedDate.split('-')[1])) || (new Date().getMonth()+1);
                     const newRecord = {
                         id: 'sc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), // 生成唯一ID
-                        date: item.date,
+                        date: parsedDate,
+                        month: monthNum,                    // 补充month字段，防止undefined月
                         amount: parseFloat(item.amount),
                         type: item.type || '支出',          // 收入/支出
                         mainCategory: item.main_category || '其他', // 你的全新大类（日常/出行）
@@ -2915,20 +2859,14 @@ function syncShortcutBill(event) {
             // 把合并后的全新大数组，稳稳地重新存回本地缓存
 localStorage.setItem('expense_records', JSON.stringify(expenseRecords));
             
-            // 🌟 终极丝滑升级：彻底删掉 location.reload()，用原生态 DOM 注入
-            alert(`✅ 双轨同步成功！\n成功智能增量导入 ${successCount} 笔新账单。`);
-            
-            // 1. 尝试原地唤醒系统自带的图表刷新
-            if (typeof fHandleCSVSuccess === 'function') { fHandleCSVSuccess(); }
-            else if (typeof fLoadData === 'function') { fLoadData(); }
-            else if (typeof loadData === 'function') { loadData(); }
-            else if (typeof initCharts === 'function') { initCharts(); }
-            
-            // 2. 强力安全垫：万一图表没动，也绝不刷新网页，直接弹出状态提示，点一下就能看到数据
+            // 直接刷新fAllTxs并重新渲染图表，无需切Tab
+            fAllTxs = expenseRecords;
+            alert(`✅ 同步成功！新增 ${successCount} 笔账单。`);
+            fInitCashflow();
             const statusBox = document.getElementById('f-dataStatus');
             const statusText = document.getElementById('f-dsText');
-            if (statusBox) statusBox.style.display = 'block';
-            if (statusText) statusText.innerHTML = `✨ 快捷指令数据已智能同步！(新增 ${successCount} 条)<br><small style="opacity:0.5;">切换其他标签页再切回来，即可刷新图表</small>`;
+            if (statusBox) statusBox.classList.add('show');
+            if (statusText) statusText.textContent = `已加载 ${expenseRecords.length} 条记录`;
 
             // 智能细节：成功导入后，让大面板自动闭合缩回去
             setTimeout(() => { 
@@ -3021,15 +2959,12 @@ function toggleAssetPrivacy() {
         </select>
       </div>
       <div class="form-group"><label>类型</label>
-        <select id="f-add-type" onchange="fToggleCustomFinance()">
+        <select id="f-add-type">
           <option value="活期">活期</option>
-          <option value="customFinance">自定义理财</option>
+          <option value="理财">理财</option>
+          <option value="基金">基金</option>
           <option value="养老金">养老金</option>
         </select>
-      </div>
-      <div class="form-group" id="f-custom-finance-group" style="display:none">
-        <label>理财名称</label>
-        <input type="text" id="f-custom-finance-name" placeholder="例如：朝朝宝">
       </div>
       <div class="form-group"><label>币种</label>
         <select id="f-add-currency"><option value="CNY">人民币 CNY</option><option value="USD">美元 USD</option></select>
@@ -3053,10 +2988,21 @@ function toggleAssetPrivacy() {
    <div class="modal-body">
 
   <div class="form-group">
-    <label>账户名称</label>
-    <input type="text"
-           id="f-edit-name"
-           placeholder="请输入账户名称">
+    <label>类型</label>
+    <select id="f-edit-type">
+      <option value="活期">活期</option>
+      <option value="理财">理财</option>
+      <option value="基金">基金</option>
+      <option value="养老金">养老金</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>币种</label>
+    <select id="f-edit-currency">
+      <option value="CNY">人民币 CNY</option>
+      <option value="USD">美元 USD</option>
+    </select>
   </div>
 
   <div class="form-group">
