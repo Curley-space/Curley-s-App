@@ -1436,7 +1436,7 @@ function wDoSave(date,m,e) {
   if(idx>=0) records[idx]=rec; else records.push(rec);
   records.sort((a,b)=>a.date.localeCompare(b.date));
   wSaveRecords(records);
-  const s=document.getElementById('saveSuccess'); s.style.display='block'; s.classList.add('show'); setTimeout(()=>{ s.classList.remove('show'); setTimeout(()=>s.style.display='none',200); },2000);
+  const s=document.getElementById('saveSuccess'); s.style.display='block'; requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ s.classList.add('show'); setTimeout(()=>{ s.classList.remove('show'); setTimeout(()=>{ s.style.display='none'; },200); },2000); }); });
   wUpdateStatusCard(); wRenderHistory();
 }
 function wUpdateStatusCard() {
