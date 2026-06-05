@@ -304,12 +304,14 @@ body {
   font-size: 13px;
   font-weight: 600;
   opacity: 0;
+  display: none;
   transition: opacity 0.2s, transform 0.2s;
   z-index: 999;
   pointer-events: none;
   white-space: nowrap;
 }
 .save-success.show {
+  display: block;
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
