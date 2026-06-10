@@ -2251,7 +2251,7 @@ function fRenderCashflow(month){
     const color = F_CAT_COLORS[cat]||F_CAT_COLORS['其他'];
     const pct = total>0?(amt/total*100).toFixed(1):0;
     const topTxs = txs.filter(t=>t.type==='支出'&&t.category===cat).sort((a,b)=>b.amount-a.amount).slice(0,5);
-    const detailRows = topTxs.map(t=>`<div class="cat-detail-row"><span class="cdr-date">${t.date.slice(5)}</span><span class="cdr-note">${t.note||'—'}</span><span class="cdr-amt">¥${fFmtFull(t.amount)}</span></div>`).join('');
+    const detailRows = topTxs.map(t=>`<div class="cat-detail-row"><span class="cdr-date">${t.date.slice(5)}</span><span class="cdr-note">${t.remark||'—'}</span><span class="cdr-amt">¥${fFmtFull(t.amount)}</span></div>`).join('');
     return `<div class="category-item-wrap">
       <div class="category-item" onclick="fToggleCatDetail(this)">
         <span class="cat-dot" style="background:${color}"></span>
@@ -2457,7 +2457,7 @@ function fRenderAnnualDonut(type){
     const color = colorMap[cat]||colorMap['其他']||'#aaa';
     const pct = total>0?(amt/total*100).toFixed(1):0;
     const topTxs = allTxs.filter(t=>t.type===txType&&t.category===cat).sort((a,b)=>b.amount-a.amount).slice(0,5);
-    const detailRows = topTxs.map(t=>`<div class="cat-detail-row"><span class="cdr-date">${t.date.slice(5)}</span><span class="cdr-note">${t.note||'—'}</span><span class="cdr-amt">¥${fFmtFull(t.amount)}</span></div>`).join('');
+    const detailRows = topTxs.map(t=>`<div class="cat-detail-row"><span class="cdr-date">${t.date.slice(5)}</span><span class="cdr-note">${t.remark||'—'}</span><span class="cdr-amt">¥${fFmtFull(t.amount)}</span></div>`).join('');
     return `<div class="category-item-wrap">
       <div class="category-item" onclick="fToggleCatDetail(this)">
         <span class="cat-dot" style="background:${color}"></span>
